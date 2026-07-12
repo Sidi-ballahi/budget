@@ -1,0 +1,282 @@
+CAHIER DES CHARGES
+Application de suivi de dépenses personnelles
+Projet personnel — Progressive Web App (PWA)
+Version 1.0 — Juillet 2026
+<w:bottom w:val="single" w:color="1F3A5F" w:sz="4" w:space="8"/></w:pBdr><w:spacing w:after="200" w:before="200"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t xml:space="preserve">Rédigé par : Sidi
+[Heading1] Sommaire
+[Heading1] 1. Contexte et objectifs
+[Heading2] 1.1 Contexte
+Ce projet vise à développer une application personnelle de suivi financier, destinée à un usage individuel (mono-utilisateur). L&apos;argent de l&apos;utilisateur transite exclusivement par quatre comptes distincts : trois comptes rattachés à des applications bancaires différentes, et une réserve de cash gérée manuellement.
+La connectivité réseau n&apos;étant pas toujours fiable, l&apos;application doit permettre une utilisation continue même hors ligne, avec synchronisation automatique dès que la connexion est rétablie.
+[Heading2] 1.2 Objectifs
+[ListParagraph] - Centraliser le suivi de toutes les dépenses et tous les revenus sur les 4 comptes (3 banques + cash).
+[ListParagraph] - Réduire l&apos;effort de saisie manuelle grâce à une catégorisation automatique assistée par IA.
+[ListParagraph] - Donner une vision claire et actualisée de la situation financière (soldes, répartition des dépenses, tendances).
+[ListParagraph] - Alerter en cas de dépassement de budget ou de dépense inhabituelle (anomalie).
+[ListParagraph] - Fournir des synthèses et prévisions en langage naturel pour faciliter la prise de décision.
+[ListParagraph] - Garantir un fonctionnement fluide en mode déconnecté (offline-first).
+[Heading1] 2. Utilisateurs et cas d&apos;usage
+[Heading2] 2.1 Profil utilisateur
+Application mono-utilisateur. Un seul profil, protégé par un code PIN local (pas d&apos;authentification serveur complexe, pas de gestion multi-comptes utilisateurs en V1).
+[Heading2] 2.2 Cas d&apos;usage principaux
+[ListParagraph] - Ouvrir l&apos;application et déverrouiller avec le PIN local.
+[ListParagraph] - Saisir une dépense ou un revenu sur l&apos;un des 4 comptes (Banque A, Banque B, Banque C, Cash).
+[ListParagraph] - Enregistrer un transfert entre comptes (ex : retrait espèces = transfert Banque → Cash).
+[ListParagraph] - Consulter le solde de chaque compte et le solde global.
+[ListParagraph] - Définir un budget mensuel par catégorie de dépense et être alerté en cas de dépassement.
+[ListParagraph] - Consulter le résumé mensuel généré automatiquement (langage naturel).
+[ListParagraph] - Être notifié d&apos;une dépense jugée inhabituelle par rapport aux habitudes de l&apos;utilisateur.
+[ListParagraph] - Consulter des prévisions et recommandations budgétaires pour le mois à venir.
+[ListParagraph] - Utiliser l&apos;application sans connexion internet et voir la synchronisation se faire automatiquement au retour du réseau.
+[Heading1] 3. Fonctionnalités
+Les fonctionnalités sont réparties entre la V1 (MVP, périmètre de ce cahier des charges) et la V2 (évolutions envisagées ultérieurement).
+[Heading2] 3.1 Périmètre V1 (MVP)
+Fonctionnalité
+Description
+Priorité
+Gestion des 4 comptes
+3 comptes bancaires + 1 compte cash, chacun avec un solde suivi en temps réel
+Must
+Saisie de transactions
+Ajout manuel de dépenses, revenus et transferts entre comptes
+Must
+Catégories
+Catégories personnalisables (ex : Transport, Alimentation, Logement...)
+Must
+Catégorisation automatique
+Suggestion de catégorie par IA à partir du libellé saisi
+Should
+Budgets par catégorie
+Définition d&apos;un plafond mensuel par catégorie + alerte de dépassement
+Must
+Dashboard
+Vue d&apos;ensemble : soldes par compte, répartition des dépenses, évolution mensuelle
+Must
+Résumé mensuel IA
+Synthèse en langage naturel des habitudes du mois écoulé
+Should
+Détection d&apos;anomalies
+Signalement des dépenses inhabituelles (montant ou fréquence atypique)
+Should
+Prévisions budgétaires
+Recommandations et estimation des dépenses du mois en cours
+Could
+Mode offline-first
+Saisie et consultation possibles sans connexion, sync automatique ensuite
+Must
+Authentification locale
+Verrouillage de l&apos;application par PIN local
+Must
+PWA installable
+Application installable sur mobile depuis le navigateur
+Must
+[Heading2] 3.2 Évolutions envisagées (V2)
+[ListParagraph] - Multi-devises (EUR, USD) avec gestion du taux de change — pertinent notamment pour le départ en Guadeloupe.
+[ListParagraph] - Import de relevés bancaires (CSV/PDF) si les applications bancaires utilisées permettent un export un jour.
+[ListParagraph] - Notifications push (dans les limites du support PWA, en particulier sur iOS).
+[ListParagraph] - Export des données personnelles (PDF, Excel).
+[ListParagraph] - Objectifs d&apos;épargne (ex : constituer une réserve pour la mobilité étudiante).
+[ListParagraph] - Partage optionnel avec un second utilisateur (si le besoin apparaît).
+[Heading1] 4. Architecture technique
+[Heading2] 4.1 Vue d&apos;ensemble
+L&apos;application est conçue comme une Progressive Web App (PWA) offline-first, avec synchronisation vers une base de données hébergée dès que la connexion est disponible.
+Couche
+Choix technique
+Justification
+Frontend
+Next.js (App Router) + TypeScript
+Cohérent avec la stack déjà maîtrisée ; support natif du rendu hybride et des routes API
+PWA
+next-pwa ou Serwist (service worker)
+Installation sur mobile, mise en cache des assets, fonctionnement hors ligne
+Stockage local
+IndexedDB via Dexie.js
+Persistance fiable côté client pour la saisie offline et la file de synchronisation
+Backend
+Next.js API routes (ou service dédié léger)
+Simplicité de déploiement, un seul repo pour front et back
+ORM
+Prisma
+Cohérent avec la stack existante ; migrations versionnées
+Base de données
+PostgreSQL hébergé (Neon ou Supabase)
+Offre gratuite adaptée à un usage personnel, sauvegardes automatiques
+IA / Insights
+Appel à un modèle de langage (API) pour catégorisation, résumés, anomalies, prévisions
+Traitement en langage naturel sans réentraîner de modèle dédié
+Authentification
+PIN local hashé, session locale
+Suffisant pour un usage mono-utilisateur, faible friction
+Déploiement
+Vercel
+Intégration native avec Next.js et les PWA
+[Heading2] 4.2 Stratégie de synchronisation
+[ListParagraph] - Toute action (création, modification, suppression) est d&apos;abord écrite en local (IndexedDB) et marquée comme « en attente de synchronisation ».
+[ListParagraph] - Une file de synchronisation rejoue les actions en attente dès que la connexion réseau est détectée.
+[ListParagraph] - Stratégie de résolution de conflits simple en V1 : dernière écriture gagne (last-write-wins), avec horodatage.
+[ListParagraph] - Chaque transaction affiche un indicateur visuel discret (synchronisée / en attente).
+[Heading1] 5. Modèle de données
+Modèle relationnel simplifié, pensé pour rester extensible (multi-devises, multi-utilisateurs en V2) sans complexifier la V1.
+[Heading2] 5.1 Comptes (accounts)
+Champ
+Type
+Description
+id
+UUID
+Identifiant unique
+nom
+Texte
+Ex : « Banque A », « Cash »
+type
+Enum
+banque | cash
+solde_initial
+Décimal
+Solde de départ saisi à la création
+devise
+Texte
+MRU en V1 (extensible en V2)
+actif
+Booléen
+Permet d&apos;archiver un compte sans le supprimer
+[Heading2] 5.2 Transactions (transactions)
+Champ
+Type
+Description
+id
+UUID
+Identifiant unique
+compte_id
+UUID
+Compte source
+compte_destination_id
+UUID (nullable)
+Renseigné uniquement pour un transfert
+type
+Enum
+depense | revenu | transfert
+montant
+Décimal
+Montant en MRU
+categorie_id
+UUID (nullable)
+Catégorie associée (suggérée par IA ou choisie manuellement)
+libelle
+Texte
+Description libre saisie par l&apos;utilisateur
+date
+Date
+Date de la transaction
+synced
+Booléen
+Statut de synchronisation avec le serveur
+cree_hors_ligne
+Booléen
+Indique si la transaction a été créée en mode offline
+[Heading2] 5.3 Catégories (categories)
+Champ
+Type
+Description
+id
+UUID
+Identifiant unique
+nom
+Texte
+Ex : « Transport », « Alimentation »
+type
+Enum
+depense | revenu
+icone
+Texte
+Référence visuelle pour le dashboard
+parent_id
+UUID (nullable)
+Sous-catégorie éventuelle
+[Heading2] 5.4 Budgets (budgets)
+Champ
+Type
+Description
+id
+UUID
+Identifiant unique
+categorie_id
+UUID
+Catégorie concernée
+montant_limite
+Décimal
+Plafond mensuel en MRU
+seuil_alerte
+Décimal (%)
+Ex : alerte à 80% du plafond atteint
+periode
+Enum
+mensuel (seule option en V1)
+[Heading2] 5.5 Insights IA (insights)
+Champ
+Type
+Description
+id
+UUID
+Identifiant unique
+type
+Enum
+resume_mensuel | anomalie | prevision
+contenu
+Texte
+Texte généré par le modèle IA
+periode_concernee
+Date
+Mois auquel se rapporte l&apos;insight
+date_generation
+Date
+Date de génération de l&apos;insight
+[Heading1] 6. Principes UX/UI
+[ListParagraph] - Conception mobile-first : l&apos;usage principal se fera sur téléphone, malgré le format PWA.
+[ListParagraph] - Saisie d&apos;une transaction en 3 étapes maximum : montant → compte + catégorie (suggérée automatiquement) → validation.
+[ListParagraph] - Écran d&apos;accueil (dashboard) : solde global en évidence, soldes par compte, répartition des dépenses par catégorie (graphique circulaire), courbe d&apos;évolution mensuelle.
+[ListParagraph] - Indicateur visuel discret sur chaque transaction pour signaler son statut de synchronisation.
+[ListParagraph] - Interface entièrement en français.
+[ListParagraph] - Mode sombre recommandé, palette sobre pour une lecture rapide des chiffres.
+[ListParagraph] - Alertes de budget et anomalies affichées de façon non intrusive (bandeau ou badge, pas de pop-up bloquante).
+[Heading1] 7. Contraintes
+[Heading2] 7.1 Fonctionnement hors ligne
+[ListParagraph] - Toutes les actions de saisie et de consultation doivent rester possibles sans connexion internet.
+[ListParagraph] - La synchronisation doit être automatique et silencieuse dès que le réseau redevient disponible.
+[Heading2] 7.2 Sécurité
+[ListParagraph] - PIN local stocké de façon hashée, jamais en clair.
+[ListParagraph] - Toutes les communications avec le serveur passent en HTTPS.
+[ListParagraph] - Aucune donnée financière n&apos;est partagée avec un tiers.
+[Heading2] 7.3 Performance
+[ListParagraph] - Chargement du dashboard en moins de 2 secondes sur un réseau mobile standard.
+[ListParagraph] - Saisie d&apos;une transaction perçue comme instantanée (moins d&apos;1 seconde), y compris hors ligne.
+[Heading2] 7.4 Compatibilité
+[ListParagraph] - Fonctionnement sur les navigateurs mobiles courants (Chrome Android, Safari iOS).
+[ListParagraph] - Installation en PWA possible sur Android et iOS.
+[Heading1] 8. Roadmap / Phases
+Phase
+Contenu
+Objectif
+Phase 1 — Socle
+4 comptes, saisie manuelle des transactions, catégories, dashboard basique, PIN local, stockage offline (IndexedDB)
+Application utilisable au quotidien
+Phase 2 — Intelligence
+Catégorisation automatique par IA, budgets par catégorie avec alertes
+Réduire la friction de saisie et prévenir les dépassements
+Phase 3 — Analyse
+Résumé mensuel en langage naturel, détection d&apos;anomalies
+Apporter de la valeur analytique au-delà du simple suivi
+Phase 4 — Prévision
+Prévisions et recommandations budgétaires
+Anticiper plutôt que constater
+V2 — Évolutions
+Multi-devises, export de données, notifications, objectifs d&apos;épargne
+Élargir le périmètre selon les besoins réels d&apos;usage
+[Heading1] 9. Critères d&apos;acceptation (V1)
+[ListParagraph] - Une transaction saisie hors ligne apparaît immédiatement dans le dashboard et se synchronise automatiquement dès le retour de la connexion, sans action manuelle.
+[ListParagraph] - Le solde de chaque compte reflète en temps réel la somme des transactions qui lui sont rattachées, y compris les transferts.
+[ListParagraph] - Lorsqu&apos;une catégorie approche ou dépasse son budget mensuel, une alerte visuelle apparaît sur le dashboard.
+[ListParagraph] - La suggestion automatique de catégorie s&apos;affiche à la saisie et peut être corrigée manuellement en un seul geste.
+[ListParagraph] - L&apos;application reste totalement fonctionnelle (saisie et consultation) en l&apos;absence de connexion internet.
+[ListParagraph] - L&apos;accès à l&apos;application est protégé par un code PIN local, avec verrouillage automatique après une période d&apos;inactivité.
+[ListParagraph] - L&apos;application peut être installée sur l&apos;écran d&apos;accueil d&apos;un mobile Android et iOS comme une application native.
+</w:pBdr><w:spacing w:before="200"/></w:pPr><w:r><w:rPr><w:i/><w:iCs/><w:color w:val="666666"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr><w:t xml:space="preserve">Fin du document.

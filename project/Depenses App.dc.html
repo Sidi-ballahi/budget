@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: oklch(0.12 0.01 60); }
+@keyframes shake { 0%,100%{transform:translateX(0);} 20%{transform:translateX(-8px);} 40%{transform:translateX(8px);} 60%{transform:translateX(-6px);} 80%{transform:translateX(6px);} }
+@keyframes fadeUp { from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+a { color: oklch(0.78 0.13 80); }
+a:hover { color: oklch(0.85 0.13 80); }
+</style>
+</helmet>
+<div style="display:flex;justify-content:center;align-items:center;min-height:100vh;padding:32px;box-sizing:border-box;background:oklch(0.12 0.01 60);font-family:'Manrope',sans-serif">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402,874">
+
+<sc-if value="{{ isLocked }}" hint-placeholder-val="{{ true }}">
+<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;box-sizing:border-box;padding:80px 24px 40px;background:oklch(0.12 0.01 60)">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+    <div style="width:56px;height:56px;border-radius:16px;background:oklch(0.78 0.13 80);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:oklch(0.15 0.02 60)">D</div>
+    <div style="margin-top:14px;font-size:15px;color:oklch(0.68 0.02 70)">Dépenses</div>
+    <div style="font-size:14px;color:oklch(0.5 0.02 70)">Entrez votre code</div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;align-items:center;gap:28px;{{ pinShakeStyle }}">
+    <div style="display:flex;gap:16px">
+      <sc-for list="{{ pinDots }}" as="dot" hint-placeholder-count="4">
+        <div style="width:14px;height:14px;border-radius:50%;{{ dot.style }}"></div>
+      </sc-for>
+    </div>
+    <div style="font-size:13px;color:oklch(0.68 0.15 25);height:16px">{{ pinErrorMsg }}</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,72px);gap:18px 22px;justify-content:center">
+    <sc-for list="{{ pinKeys }}" as="k" hint-placeholder-count="12">
+      <div onClick="{{ k.onClick }}" style="{{ k.style }}">{{ k.label }}</div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isUnlocked }}" hint-placeholder-val="{{ false }}">
+<div style="height:100%;display:flex;flex-direction:column;box-sizing:border-box;background:oklch(0.12 0.01 60);position:relative;overflow:hidden">
+
+  <div style="flex:1;overflow:auto;padding:56px 18px 100px">
+
+    <sc-if value="{{ isTabDashboard }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+        <div>
+          <div style="font-size:13px;color:oklch(0.5 0.02 70)">Bonjour, Sidi</div>
+          <div style="font-size:22px;font-weight:800;color:oklch(0.95 0.01 70)">Tableau de bord</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;background:oklch(0.23 0.014 60);border-radius:100px;padding:6px 12px;margin-top:4px">
+          <div style="width:7px;height:7px;border-radius:50%;background:oklch(0.72 0.14 150)"></div>
+          <div style="font-size:11px;color:oklch(0.68 0.02 70)">À jour</div>
+        </div>
+      </div>
+
+      <div style="background:oklch(0.23 0.014 60);border:1px solid oklch(1 0 0 / 0.06);border-radius:22px;padding:20px;margin-bottom:16px">
+        <div style="font-size:13px;color:oklch(0.68 0.02 70);margin-bottom:6px">Solde global</div>
+        <div style="font-size:32px;font-weight:800;color:oklch(0.95 0.01 70);letter-spacing:-0.5px">{{ globalBalanceFmt }}</div>
+      </div>
+
+      <sc-if value="{{ hasAlerts }}" hint-placeholder-val="{{ false }}">
+        <div onClick="{{ goToBudgets }}" style="display:flex;align-items:center;gap:10px;background:oklch(0.68 0.15 25 / 0.14);border:1px solid oklch(0.68 0.15 25 / 0.35);border-radius:16px;padding:12px 14px;margin-bottom:16px;cursor:pointer">
+          <div style="width:8px;height:8px;border-radius:50%;background:oklch(0.68 0.15 25);flex-shrink:0"></div>
+          <div style="font-size:12.5px;color:oklch(0.9 0.02 40);line-height:1.4">{{ alertsMsg }}</div>
+        </div>
+      </sc-if>
+
+      <div style="display:flex;gap:10px;overflow-x:auto;margin:0 -18px;padding:0 18px 4px 18px;margin-bottom:18px">
+        <sc-for list="{{ dashboardAccounts }}" as="acc" hint-placeholder-count="4">
+          <div onClick="{{ acc.onClick }}" style="flex:0 0 128px;background:oklch(0.23 0.014 60);border:1px solid oklch(1 0 0 / 0.06);border-radius:18px;padding:14px;cursor:pointer">
+            <div style="width:10px;height:10px;border-radius:3px;background:{{ acc.color }};margin-bottom:20px"></div>
+            <div style="font-size:12px;color:oklch(0.68 0.02 70);margin-bottom:4px">{{ acc.name }}</div>
+            <div style="font-size:15px;font-weight:700;color:oklch(0.95 0.01 70)">{{ acc.balanceFmt }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="font-size:14px;font-weight:700;color:oklch(0.95 0.01 70);margin-bottom:10px">Répartition des dépenses</div>
+      <div style="background:oklch(0.23 0.014 60);border:1px solid oklch(1 0 0 / 0.06);border-radius:22px;padding:20px;margin-bottom:18px;display:flex;gap:20px;align-items:center">
+        <div style="width:104px;height:104px;border-radius:50%;flex-shrink:0;background:{{ donutGradient }};position:relative">
+          <div style="position:absolute;inset:14px;border-radius:50%;background:oklch(0.23 0.014 60);display:flex;align-items:center;justify-content:center;font-size:11px;color:oklch(0.68 0.02 70);text-align:center">Ce mois</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;flex:1">
+          <sc-for list="{{ categoryLegend }}" as="cat" hint-placeholder-count="6">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:8px;height:8px;border-radius:2px;background:{{ cat.color }};flex-shrink:0"></div>
+              <div style="font-size:12px;color:oklch(0.85 0.01 70);flex:1">{{ cat.name }}</div>
+              <div style="font-size:12px;color:oklch(0.68 0.02 70)">{{ cat.pctFmt }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="font-size:14px;font-weight:700;color:oklch(0.95 0.01 70);margin-bottom:10px">Évolution du solde</div>
+      <div style="background:oklch(0.23 0.014 60);border:1px solid oklch(1 0 0 / 0.06);border-radius:22px;padding:20px 16px;margin-bottom:18px">
+        <div style="display:flex;align-items:flex-end;gap:10px;height:80px">
+          <sc-for list="{{ trendBars }}" as="bar" hint-placeholder-count="6">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end">
+              <div style="width:100%;border-radius:6px 6px 2px 2px;background:{{ bar.color }};height:{{ bar.heightPct }}%"></div>
+              <div style="font-size:10px;color:oklch(0.5 0.02 70)">{{ bar.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:14px;font-weight:700;color:oklch(0.95 0.01 70)">Transactions récentes</div>
+      </div>
+      <div style="background:oklch(0.23 0.014 60);border:1px solid oklch(1 0 0 / 0.06);border-radius:22px;overflow:hidden">
+        <sc-for list="{{ recentTransactions }}" as="tx" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;{{ tx.borderStyle }}">
+            <div style="width:34px;height:34px;border-radius:11px;background:{{ tx.catColor }};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:oklch(0.15 0.02 60)">{{ tx.initial }}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13.5px;color:oklch(0.92 0.01 70);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ tx.label }}</div>
+              <div style="font-size:11.5px;color:oklch(0.5 0.02 70)">{{ tx.subtitle }}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+              <div style="font-size:13.5px;font-weight:700;color:{{ tx.amountColor }}">{{ tx.amountFmt }}</div>
+              <div style="width:6px;height:6px;border-radius:50%;background:{{ tx.syncColor }}"></div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isTabAccounts }}" hint-placeholder-val="{{ false }}">
+      <div style="font-size:22px;font-weight:800;color:oklch(0.95 0.01 70);margin-bottom:18px">Comptes</div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px">
+        <sc-for list="{{ accountsTabList }}" as="acc" hint-placeholder-count="4">
+          <div onClick="{{ acc.onClick }}" style="display:flex;align-items:center;gap:12px;background:oklch(0.23 0.014 60);border:1px solid oklch(1 0 0 / 0.06);border-radius:18px;padding:16px;cursor:pointer">
+            <div style="width:38px;height:38px;border-radius:12px;background:{{ acc.color }};flex-shrink:0"></div>
+            <div style="flex:1">
+              <div style="font-size:14.5px;font-weight:600;color:oklch(0.92 0.01 70)">{{ acc.name }}</div>
+              <div style="font-size:12px;color:oklch(0.5 0.02 70)">{{ acc.typeLabel }}</div>
+            </div>
+            <div style="font-size:15px;font-weight:700;color:oklch(0.95 0.01 70)">{{ acc.balanceFmt }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:14px;font-weight:700;color:oklch(0.95 0.01 70);margin-bottom:10px">Toutes les transactions</div>
+      <div style="background:oklch(0.23 0.014 60);border:1px solid oklch(1 0 0 / 0.06);border-radius:22px;overflow:hidden">
+        <sc-for list="{{ allTransactions }}" as="tx" hint-placeholder-count="10">
+          <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;{{ tx.borderStyle }}">
+            <div style="width:34px;height:34px;border-radius:11px;background:{{ tx.catColor }};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:oklch(0.15 0.02 60)">{{ tx.initial }}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13.5px;color:oklch(0.92 0.01 70);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ tx.label }}</div>
+              <div style="font-size:11.5px;color:oklch(0.5 0.02 70)">{{ tx.subtitle }}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+              <div style="font-size:13.5px;font-weight:700;color:{{ tx.amountColor }}">{{ tx.amountFmt }}</div>
+              <div style="width:6px;height:6px;border-radius:50%;background:{{ tx.syncColor }}"></div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isTabBudgets }}" hint-placeholder-val="{{ false }}">
+      <div style="font-size:22px;font-weight:800;color:oklch(0.95 0.01 70);margin-bottom:6px">Budgets</div>
+      <div style="font-size:12.5px;color:oklch(0.5 0.02 70);margin-bottom:18px">Plafonds mensuels par catégorie</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ budgetsList }}" as="b" hint-placeholder-count="6">
+          <div style="background:oklch(0.23 0.014 60);border:1px solid oklch(1 0 0 / 0.06);border-radius:18px;padding:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:9px;height:9px;border-radius:3px;background:{{ b.color }}"></div>
+                <div style="font-size:14px;font-weight:600;color:oklch(0.92 0.01 70)">{{ b.name }}</div>
+              </div>
+              <sc-if value="{{ b.isAlert }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:10.5px;font-weight:700;color:oklch(0.68 0.15 25);background:oklch(0.68 0.15 25 / 0.15);padding:3px 8px;border-radius:100px">{{ b.alertLabel }}</div>
+              </sc-if>
+            </div>
+            <div style="height:8px;border-radius:100px;background:oklch(0.3 0.01 60);overflow:hidden;margin-bottom:8px">
+              <div style="height:100%;border-radius:100px;width:{{ b.pctClamped }}%;background:{{ b.barColor }}"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:oklch(0.68 0.02 70)">
+              <div>{{ b.spentFmt }} dépensés</div>
+              <div>plafond {{ b.limitFmt }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isTabInsights }}" hint-placeholder-val="{{ false }}">
+      <div style="font-size:22px;font-weight:800;color:oklch(0.95 0.01 70);margin-bottom:18px">Insights</div>
+
+      <div style="background:oklch(0.23 0.014 60);border:1px solid oklch(1 0 0 / 0.06);border-radius:20px;padding:18px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div style="width:8px;height:8px;border-radius:50%;background:oklch(0.78 0.13 80)"></div>
+          <div style="font-size:13px;font-weight:700;color:oklch(0.95 0.01 70)">Résumé du mois — IA</div>
+        </div>
+        <div style="font-size:13px;line-height:1.6;color:oklch(0.85 0.01 70)">{{ monthlySummary }}</div>
+      </div>
+
+      <div style="background:oklch(0.23 0.014 60);border:1px solid oklch(1 0 0 / 0.06);border-radius:20px;padding:18px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <div style="width:8px;height:8px;border-radius:50%;background:oklch(0.68 0.15 25)"></div>
+          <div style="font-size:13px;font-weight:700;color:oklch(0.95 0.01 70)">Anomalies détectées</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ anomalies }}" as="an" hint-placeholder-count="2">
+            <div style="display:flex;gap:10px">
+              <div style="width:4px;border-radius:2px;background:oklch(0.68 0.15 25);flex-shrink:0"></div>
+              <div>
+                <div style="font-size:13px;color:oklch(0.9 0.01 70);font-weight:600;margin-bottom:2px">{{ an.title }}</div>
+                <div style="font-size:12px;color:oklch(0.68 0.02 70);line-height:1.5">{{ an.detail }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="background:oklch(0.23 0.014 60);border:1px solid oklch(1 0 0 / 0.06);border-radius:20px;padding:18px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div style="width:8px;height:8px;border-radius:50%;background:oklch(0.72 0.14 150)"></div>
+          <div style="font-size:13px;font-weight:700;color:oklch(0.95 0.01 70)">Prévisions budgétaires</div>
+        </div>
+        <div style="font-size:13px;line-height:1.6;color:oklch(0.85 0.01 70)">{{ forecast }}</div>
+      </div>
+    </sc-if>
+
+  </div>
+
+  <div style="position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;pointer-events:none">
+    <div onClick="{{ openAdd }}" style="pointer-events:auto;position:relative;bottom:-14px;width:56px;height:56px;border-radius:50%;background:oklch(0.78 0.13 80);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:oklch(0.15 0.02 60);box-shadow:0 8px 20px oklch(0.78 0.13 80 / 0.4);cursor:pointer;z-index:3">+</div>
+    <div style="pointer-events:auto;width:100%;background:oklch(0.16 0.012 60 / 0.92);backdrop-filter:blur(16px);border-top:1px solid oklch(1 0 0 / 0.07);display:flex;padding:14px 8px 30px;box-sizing:border-box">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+        <div onClick="{{ t.onClick }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer">
+          <div style="{{ t.dotStyle }}"></div>
+          <div style="font-size:10.5px;{{ t.labelStyle }}">{{ t.label }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <sc-if value="{{ isAccountOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:oklch(0.12 0.01 60);z-index:10;display:flex;flex-direction:column;box-sizing:border-box;padding:56px 18px 24px;overflow:auto">
+      <div onClick="{{ closeAccount }}" style="display:flex;align-items:center;gap:6px;color:oklch(0.78 0.13 80);font-size:14px;font-weight:600;margin-bottom:18px;cursor:pointer">‹ Retour</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+        <div style="width:44px;height:44px;border-radius:14px;background:{{ openAccount.color }}"></div>
+        <div>
+          <div style="font-size:20px;font-weight:800;color:oklch(0.95 0.01 70)">{{ openAccount.name }}</div>
+          <div style="font-size:12.5px;color:oklch(0.5 0.02 70)">{{ openAccount.typeLabel }}</div>
+        </div>
+      </div>
+      <div style="background:oklch(0.23 0.014 60);border:1px solid oklch(1 0 0 / 0.06);border-radius:20px;padding:18px;margin-bottom:20px">
+        <div style="font-size:12.5px;color:oklch(0.68 0.02 70);margin-bottom:6px">Solde du compte</div>
+        <div style="font-size:26px;font-weight:800;color:oklch(0.95 0.01 70)">{{ openAccount.balanceFmt }}</div>
+      </div>
+      <div style="font-size:14px;font-weight:700;color:oklch(0.95 0.01 70);margin-bottom:10px">Historique</div>
+      <div style="background:oklch(0.23 0.014 60);border:1px solid oklch(1 0 0 / 0.06);border-radius:22px;overflow:hidden">
+        <sc-for list="{{ openAccountTransactions }}" as="tx" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;{{ tx.borderStyle }}">
+            <div style="width:34px;height:34px;border-radius:11px;background:{{ tx.catColor }};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:oklch(0.15 0.02 60)">{{ tx.initial }}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13.5px;color:oklch(0.92 0.01 70);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ tx.label }}</div>
+              <div style="font-size:11.5px;color:oklch(0.5 0.02 70)">{{ tx.subtitle }}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+              <div style="font-size:13.5px;font-weight:700;color:{{ tx.amountColor }}">{{ tx.amountFmt }}</div>
+              <div style="width:6px;height:6px;border-radius:50%;background:{{ tx.syncColor }}"></div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isAddOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeAdd }}" style="position:absolute;inset:0;background:oklch(0 0 0 / 0.5);z-index:20"></div>
+    <div style="position:absolute;left:0;right:0;bottom:0;height:88%;background:oklch(0.16 0.012 60);border-radius:26px 26px 0 0;z-index:21;box-sizing:border-box;padding:14px 18px 28px;display:flex;flex-direction:column;box-shadow:0 -20px 40px oklch(0 0 0 / 0.4)">
+      <div style="width:36px;height:4px;border-radius:100px;background:oklch(1 0 0 / 0.15);align-self:center;margin-bottom:16px"></div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+        <div style="font-size:16px;font-weight:700;color:oklch(0.95 0.01 70)">Nouvelle opération</div>
+        <div onClick="{{ closeAdd }}" style="width:28px;height:28px;border-radius:50%;background:oklch(1 0 0 / 0.08);display:flex;align-items:center;justify-content:center;color:oklch(0.68 0.02 70);cursor:pointer;font-size:14px">✕</div>
+      </div>
+
+      <div style="display:flex;gap:6px;background:oklch(0.23 0.014 60);border-radius:12px;padding:4px;margin-bottom:20px">
+        <sc-for list="{{ addTypes }}" as="ty" hint-placeholder-count="3">
+          <div onClick="{{ ty.onClick }}" style="flex:1;text-align:center;padding:8px 0;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;{{ ty.style }}">{{ ty.label }}</div>
+        </sc-for>
+      </div>
+
+      <div style="flex:1;overflow:auto">
+
+        <sc-if value="{{ addStepIs1 }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px 0 30px">
+            <div style="font-size:12.5px;color:oklch(0.5 0.02 70)">Montant</div>
+            <div style="font-size:38px;font-weight:800;color:oklch(0.95 0.01 70)">{{ addAmountFmt }}</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px 18px;max-width:280px;margin:0 auto">
+            <sc-for list="{{ amountKeys }}" as="k" hint-placeholder-count="12">
+              <div onClick="{{ k.onClick }}" style="{{ k.style }}">{{ k.label }}</div>
+            </sc-for>
+          </div>
+          <div onClick="{{ goStep2 }}" style="{{ nextButtonStyle }}">Continuer</div>
+        </sc-if>
+
+        <sc-if value="{{ addStepIs2 }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12.5px;font-weight:700;color:oklch(0.68 0.02 70);margin-bottom:8px">LIBELLÉ (optionnel)</div>
+          <input value="{{ addLabel }}" onChange="{{ onLabelChange }}" placeholder="ex : Restaurant, Taxi, Loyer…" style="width:100%;box-sizing:border-box;background:oklch(0.23 0.014 60);border:1px solid oklch(1 0 0 / 0.08);border-radius:12px;padding:12px 14px;color:oklch(0.92 0.01 70);font-size:14px;font-family:'Manrope',sans-serif;margin-bottom:18px;outline:none">
+
+          <div style="font-size:12.5px;font-weight:700;color:oklch(0.68 0.02 70);margin-bottom:8px">COMPTE</div>
+          <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:18px">
+            <sc-for list="{{ addStepAccounts }}" as="acc" hint-placeholder-count="4">
+              <div onClick="{{ acc.onClick }}" style="flex:0 0 92px;padding:12px 10px;border-radius:14px;text-align:center;cursor:pointer;{{ acc.style }}">
+                <div style="font-size:12px;font-weight:600">{{ acc.name }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ addTypeIsTransfert }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:12.5px;font-weight:700;color:oklch(0.68 0.02 70);margin-bottom:8px">VERS LE COMPTE</div>
+            <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:18px">
+              <sc-for list="{{ addStepDestAccounts }}" as="acc" hint-placeholder-count="3">
+                <div onClick="{{ acc.onClick }}" style="flex:0 0 92px;padding:12px 10px;border-radius:14px;text-align:center;cursor:pointer;{{ acc.style }}">
+                  <div style="font-size:12px;font-weight:600">{{ acc.name }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ addTypeIsNotTransfert }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <div style="font-size:12.5px;font-weight:700;color:oklch(0.68 0.02 70)">CATÉGORIE</div>
+              <sc-if value="{{ hasSuggestion }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:10.5px;color:oklch(0.78 0.13 80);background:oklch(0.78 0.13 80 / 0.14);padding:2px 8px;border-radius:100px">Suggéré par IA : {{ suggestedCategoryName }}</div>
+              </sc-if>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px">
+              <sc-for list="{{ addCategories }}" as="cat" hint-placeholder-count="6">
+                <div onClick="{{ cat.onClick }}" style="padding:12px 8px;border-radius:14px;text-align:center;cursor:pointer;{{ cat.style }}">
+                  <div style="width:8px;height:8px;border-radius:2px;background:{{ cat.color }};margin:0 auto 6px"></div>
+                  <div style="font-size:11.5px;font-weight:600">{{ cat.name }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <div style="display:flex;gap:10px">
+            <div onClick="{{ goStep1 }}" style="flex:1;text-align:center;padding:14px;border-radius:14px;background:oklch(1 0 0 / 0.06);color:oklch(0.85 0.01 70);font-size:14px;font-weight:600;cursor:pointer">Retour</div>
+            <div onClick="{{ goStep3 }}" style="{{ step2NextStyle }}">Continuer</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ addStepIs3 }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12.5px;font-weight:700;color:oklch(0.68 0.02 70);margin-bottom:12px">RÉCAPITULATIF</div>
+          <div style="background:oklch(0.23 0.014 60);border:1px solid oklch(1 0 0 / 0.06);border-radius:18px;padding:18px;margin-bottom:20px;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;justify-content:space-between"><div style="font-size:13px;color:oklch(0.68 0.02 70)">Type</div><div style="font-size:13px;font-weight:600;color:oklch(0.92 0.01 70)">{{ addTypeLabel }}</div></div>
+            <div style="display:flex;justify-content:space-between"><div style="font-size:13px;color:oklch(0.68 0.02 70)">Montant</div><div style="font-size:15px;font-weight:700;color:oklch(0.95 0.01 70)">{{ addAmountFmt }}</div></div>
+            <div style="display:flex;justify-content:space-between"><div style="font-size:13px;color:oklch(0.68 0.02 70)">Compte</div><div style="font-size:13px;font-weight:600;color:oklch(0.92 0.01 70)">{{ addAccountName }}</div></div>
+            <sc-if value="{{ addTypeIsTransfert }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;justify-content:space-between"><div style="font-size:13px;color:oklch(0.68 0.02 70)">Vers</div><div style="font-size:13px;font-weight:600;color:oklch(0.92 0.01 70)">{{ addDestAccountName }}</div></div>
+            </sc-if>
+            <sc-if value="{{ addTypeIsNotTransfert }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;justify-content:space-between"><div style="font-size:13px;color:oklch(0.68 0.02 70)">Catégorie</div><div style="font-size:13px;font-weight:600;color:oklch(0.92 0.01 70)">{{ addCategoryName }}</div></div>
+            </sc-if>
+            <div style="display:flex;justify-content:space-between"><div style="font-size:13px;color:oklch(0.68 0.02 70)">Libellé</div><div style="font-size:13px;font-weight:600;color:oklch(0.92 0.01 70)">{{ addLabelDisplay }}</div></div>
+            <div style="display:flex;justify-content:space-between"><div style="font-size:13px;color:oklch(0.68 0.02 70)">Date</div><div style="font-size:13px;font-weight:600;color:oklch(0.92 0.01 70)">{{ todayFmt }}</div></div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <div onClick="{{ goStep2 }}" style="flex:1;text-align:center;padding:14px;border-radius:14px;background:oklch(1 0 0 / 0.06);color:oklch(0.85 0.01 70);font-size:14px;font-weight:600;cursor:pointer">Retour</div>
+            <div onClick="{{ confirmAdd }}" style="flex:2;text-align:center;padding:14px;border-radius:14px;background:oklch(0.78 0.13 80);color:oklch(0.15 0.02 60);font-size:14px;font-weight:700;cursor:pointer">Valider</div>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isToastOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:50%;bottom:110px;transform:translateX(-50%);background:oklch(0.95 0.01 70);color:oklch(0.15 0.02 60);font-size:13px;font-weight:600;padding:10px 18px;border-radius:100px;z-index:30;box-shadow:0 8px 20px oklch(0 0 0 / 0.3);animation:fadeUp 0.25s ease">{{ toastMsg }}</div>
+  </sc-if>
+
+</div>
+</sc-if>
+
+</x-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accentColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;oklch(0.72 0.14 150)&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;oklch(0.78 0.13 80)&quot;,&quot;oklch(0.72 0.14 150)&quot;,&quot;oklch(0.72 0.14 230)&quot;,&quot;oklch(0.7 0.13 25)&quot;]},&quot;startLocked&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Démo&quot;},&quot;aiSuggestions&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Démo&quot;}}">
+const ACCOUNTS = [
+  { id: 'a', name: 'Banque A', type: 'banque', color: 'oklch(0.72 0.14 230)', balance: 245300 },
+  { id: 'b', name: 'Banque B', type: 'banque', color: 'oklch(0.72 0.14 300)', balance: 89150 },
+  { id: 'c', name: 'Banque C', type: 'banque', color: 'oklch(0.72 0.14 80)', balance: 52800 },
+  { id: 'cash', name: 'Cash', type: 'cash', color: 'oklch(0.72 0.14 150)', balance: 18000 },
+];
+
+const CATEGORIES = [
+  { id: 'alim', name: 'Alimentation', color: 'oklch(0.72 0.14 80)', keywords: ['resto','restaurant','café','cafe','supermarche','supermarché','nema','course','courses','alimentation'] },
+  { id: 'transport', name: 'Transport', color: 'oklch(0.72 0.14 230)', keywords: ['taxi','essence','bus','aeroport','aéroport','transport','carburant'] },
+  { id: 'logement', name: 'Logement', color: 'oklch(0.72 0.14 300)', keywords: ['loyer','logement','appartement','electricite','électricité','eau'] },
+  { id: 'loisirs', name: 'Loisirs', color: 'oklch(0.72 0.14 150)', keywords: ['cinema','cinéma','loisir','sport','sortie'] },
+  { id: 'sante', name: 'Santé', color: 'oklch(0.68 0.15 25)', keywords: ['pharmacie','medecin','médecin','sante','santé','hopital','hôpital'] },
+  { id: 'autres', name: 'Autres', color: 'oklch(0.55 0.02 70)', keywords: [] },
+];
+
+const BUDGETS = [
+  { catId: 'alim', limit: 70000, spent: 62300 },
+  { catId: 'transport', limit: 30000, spent: 14200 },
+  { catId: 'logement', limit: 90000, spent: 95000 },
+  { catId: 'loisirs', limit: 25000, spent: 9800 },
+  { catId: 'sante', limit: 20000, spent: 6200 },
+  { catId: 'autres', limit: 15000, spent: 7100 },
+];
+
+const TRANSACTIONS = [
+  { id: 1, date: '12/07', label: 'Supermarché Nema', catId: 'alim', accountId: 'a', amount: -4500, type: 'depense', synced: true },
+  { id: 2, date: '11/07', label: 'Taxi aéroport', catId: 'transport', accountId: 'cash', amount: -3000, type: 'depense', synced: true },
+  { id: 3, date: '10/07', label: 'Salaire Juillet', catId: 'autres', accountId: 'a', amount: 180000, type: 'revenu', synced: true },
+  { id: 4, date: '09/07', label: 'Loyer appartement', catId: 'logement', accountId: 'b', amount: -95000, type: 'depense', synced: true },
+  { id: 5, date: '08/07', label: 'Retrait espèces', catId: 'autres', accountId: 'a', amount: -20000, type: 'transfert', synced: true },
+  { id: 6, date: '07/07', label: 'Pharmacie', catId: 'sante', accountId: 'c', amount: -2200, type: 'depense', synced: true },
+  { id: 7, date: '06/07', label: 'Cinéma', catId: 'loisirs', accountId: 'cash', amount: -1800, type: 'depense', synced: false },
+  { id: 8, date: '05/07', label: 'Restaurant', catId: 'alim', accountId: 'a', amount: -6800, type: 'depense', synced: true },
+  { id: 9, date: '04/07', label: 'Abonnement internet', catId: 'autres', accountId: 'b', amount: -4500, type: 'depense', synced: true },
+  { id: 10, date: '03/07', label: 'Essence', catId: 'transport', accountId: 'c', amount: -5200, type: 'depense', synced: true },
+];
+
+const TREND = [310000, 325000, 290000, 350000, 380000, 405250];
+const MONTH_LABELS = ['Fev','Mar','Avr','Mai','Jun','Jul'];
+
+function fmtNum(n) {
+  const s = Math.round(Math.abs(n)).toString();
+  return s.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+class Component extends DCLogic {
+  state = {
+    pinEntry: '',
+    pinError: false,
+    isLocked: true,
+    tab: 'dashboard',
+    openAccountId: null,
+    addOpen: false,
+    addStep: 1,
+    addType: 'depense',
+    addAmount: '',
+    addAccountId: null,
+    addDestAccountId: null,
+    addCategoryId: null,
+    addLabel: '',
+    toastMsg: null,
+    transactions: TRANSACTIONS.slice(),
+    balances: Object.fromEntries(ACCOUNTS.map(a => [a.id, a.balance])),
+  };
+
+  correctPin = '1234';
+
+  catById(id) { return CATEGORIES.find(c => c.id === id) || CATEGORIES[CATEGORIES.length - 1]; }
+  accById(id) { return ACCOUNTS.find(a => a.id === id); }
+
+  fmtMoney(n, showSign) {
+    const sign = n < 0 ? '-' : (showSign ? '+' : '');
+    return sign + fmtNum(n) + ' MRU';
+  }
+
+  suggestCategory(label) {
+    const l = (label || '').toLowerCase();
+    if (!l) return null;
+    for (const cat of CATEGORIES) {
+      if (cat.keywords.some(k => l.includes(k))) return cat.id;
+    }
+    return 'autres';
+  }
+
+  pressPinDigit(d) {
+    if (this.state.pinEntry.length >= 4) return;
+    const next = this.state.pinEntry + d;
+    this.setState({ pinEntry: next, pinError: false });
+    if (next.length === 4) {
+      setTimeout(() => {
+        if (next === this.correctPin) {
+          this.setState({ isLocked: false });
+        } else {
+          this.setState({ pinError: true, pinEntry: '' });
+        }
+      }, 150);
+    }
+  }
+  pressPinDelete() {
+    this.setState({ pinEntry: this.state.pinEntry.slice(0, -1), pinError: false });
+  }
+
+  setTab(tab) { this.setState({ tab, openAccountId: null }); }
+  openAccount(id) { this.setState({ openAccountId: id }); }
+  closeAccount() { this.setState({ openAccountId: null }); }
+  goToBudgets() { this.setState({ tab: 'budgets', openAccountId: null }); }
+
+  openAdd() {
+    this.setState({
+      addOpen: true, addStep: 1, addType: 'depense', addAmount: '',
+      addAccountId: null, addDestAccountId: null, addCategoryId: null, addLabel: '',
+    });
+  }
+  closeAdd() { this.setState({ addOpen: false }); }
+  setAddType(t) { this.setState({ addType: t, addCategoryId: null, addDestAccountId: null }); }
+
+  pressAmountDigit(d) {
+    if (this.state.addAmount.length >= 9) return;
+    this.setState({ addAmount: this.state.addAmount + d });
+  }
+  pressAmountDelete() { this.setState({ addAmount: this.state.addAmount.slice(0, -1) }); }
+
+  goStep1() { this.setState({ addStep: 1 }); }
+  goStep2() { this.setState({ addStep: 2 }); }
+  goStep3() { this.setState({ addStep: 3 }); }
+
+  selectAddAccount(id) { this.setState({ addAccountId: id }); }
+  selectAddDestAccount(id) { this.setState({ addDestAccountId: id }); }
+  selectAddCategory(id) { this.setState({ addCategoryId: id }); }
+  onLabelChange(e) {
+    const val = e.target.value;
+    const s = { addLabel: val };
+    if ((this.props.aiSuggestions ?? true) && !this.state.addCategoryId) {
+      // suggestion only shown, not force-selected
+    }
+    this.setState(s);
+  }
+
+  confirmAdd() {
+    const amount = parseInt(this.state.addAmount || '0', 10);
+    const accId = this.state.addAccountId;
+    const balances = { ...this.state.balances };
+    let tx;
+    if (this.state.addType === 'transfert') {
+      const destId = this.state.addDestAccountId;
+      if (accId) balances[accId] = (balances[accId] || 0) - amount;
+      if (destId) balances[destId] = (balances[destId] || 0) + amount;
+      tx = { id: Date.now(), date: this.todayShort(), label: this.state.addLabel || 'Transfert', catId: 'autres', accountId: accId, amount: -amount, type: 'transfert', synced: false };
+    } else {
+      const signed = this.state.addType === 'revenu' ? amount : -amount;
+      if (accId) balances[accId] = (balances[accId] || 0) + signed;
+      tx = { id: Date.now(), date: this.todayShort(), label: this.state.addLabel || (this.state.addType === 'revenu' ? 'Revenu' : 'Dépense'), catId: this.state.addCategoryId || 'autres', accountId: accId, amount: signed, type: this.state.addType, synced: false };
+    }
+    const transactions = [tx, ...this.state.transactions];
+    this.setState({ transactions, balances, addOpen: false, toastMsg: 'Transaction ajoutée' });
+    setTimeout(() => this.setState({ toastMsg: null }), 2200);
+  }
+
+  todayShort() {
+    const d = new Date();
+    return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0');
+  }
+  todayLong() {
+    const d = new Date();
+    const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+    return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
+  txRow(tx) {
+    const cat = this.catById(tx.catId);
+    const acc = this.accById(tx.accountId);
+    return {
+      id: tx.id,
+      label: tx.label,
+      initial: tx.type === 'transfert' ? '⇄' : cat.name[0],
+      catColor: tx.type === 'transfert' ? 'oklch(0.7 0.02 70)' : cat.color,
+      subtitle: (acc ? acc.name : '') + ' · ' + tx.date,
+      amountFmt: this.fmtMoney(tx.amount, tx.type === 'revenu'),
+      amountColor: tx.amount < 0 ? 'oklch(0.88 0.01 70)' : 'oklch(0.72 0.14 150)',
+      syncColor: tx.synced ? 'oklch(0.72 0.14 150)' : 'oklch(0.78 0.13 80)',
+      borderStyle: 'border-bottom: 1px solid oklch(1 0 0 / 0.05)',
+    };
+  }
+
+  renderVals() {
+    const accentGold = this.props.accentColor || 'oklch(0.78 0.13 80)';
+    const startLocked = this.props.startLocked ?? true;
+    const isLocked = this.state.isLocked && startLocked;
+
+    // PIN screen
+    const pinDots = [0,1,2,3].map(i => ({
+      style: i < this.state.pinEntry.length
+        ? `background:${accentGold}`
+        : 'background:oklch(1 0 0 / 0.15)',
+    }));
+    const pinKeyLabels = ['1','2','3','4','5','6','7','8','9','','0','del'];
+    const pinKeys = pinKeyLabels.map(label => {
+      if (label === '') return { label: '', onClick: () => {}, style: 'width:72px;height:72px' };
+      const isDel = label === 'del';
+      return {
+        label: isDel ? '⌫' : label,
+        onClick: isDel ? () => this.pressPinDelete() : () => this.pressPinDigit(label),
+        style: `width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${isDel ? 20 : 26}px;font-weight:600;color:oklch(0.9 0.01 70);background:oklch(1 0 0 / 0.05);cursor:pointer`,
+      };
+    });
+    const pinShakeStyle = this.state.pinError ? 'animation: shake 0.4s' : '';
+    const pinErrorMsg = this.state.pinError ? 'Code incorrect, réessayez' : '';
+
+    // account helpers
+    const accWithBalance = ACCOUNTS.map(a => ({ ...a, balance: this.state.balances[a.id] }));
+    const globalBalance = accWithBalance.reduce((s, a) => s + a.balance, 0);
+
+    const dashboardAccounts = accWithBalance.map(a => ({
+      ...a, balanceFmt: this.fmtMoney(a.balance, false).replace('-',''),
+      onClick: () => this.openAccount(a.id),
+    }));
+    const accountsTabList = accWithBalance.map(a => ({
+      ...a, balanceFmt: this.fmtMoney(a.balance, false).replace('-',''),
+      typeLabel: a.type === 'cash' ? 'Espèces' : 'Compte bancaire',
+      onClick: () => this.openAccount(a.id),
+    }));
+
+    // budgets + category legend
+    const totalSpent = BUDGETS.reduce((s, b) => s + b.spent, 0);
+    let cumAngle = 0;
+    const stops = [];
+    const categoryLegend = BUDGETS.map(b => {
+      const cat = this.catById(b.catId);
+      const pct = totalSpent ? (b.spent / totalSpent) * 100 : 0;
+      const start = cumAngle;
+      cumAngle += pct;
+      stops.push(`${cat.color} ${start}% ${cumAngle}%`);
+      return { name: cat.name, color: cat.color, pctFmt: Math.round(pct) + '%' };
+    });
+    const donutGradient = `conic-gradient(${stops.join(', ')})`;
+
+    const budgetsList = BUDGETS.map(b => {
+      const cat = this.catById(b.catId);
+      const pct = b.limit ? (b.spent / b.limit) * 100 : 0;
+      const isAlert = pct >= 80;
+      const isOver = pct >= 100;
+      return {
+        name: cat.name, color: cat.color,
+        pctClamped: Math.min(100, Math.round(pct)),
+        barColor: isOver ? 'oklch(0.68 0.15 25)' : (isAlert ? 'oklch(0.78 0.13 80)' : 'oklch(0.72 0.14 150)'),
+        isAlert, alertLabel: isOver ? 'DÉPASSÉ' : 'ALERTE',
+        spentFmt: fmtNum(b.spent) + ' MRU', limitFmt: fmtNum(b.limit) + ' MRU',
+      };
+    });
+    const overBudgets = BUDGETS.filter(b => b.limit && (b.spent / b.limit) >= 0.8);
+    const hasAlerts = overBudgets.length > 0;
+    const alertsMsg = overBudgets.length
+      ? `${overBudgets.length} catégorie${overBudgets.length > 1 ? 's' : ''} proche${overBudgets.length > 1 ? 's' : ''} ou au-delà du budget : ${overBudgets.map(b => this.catById(b.catId).name).join(', ')}.`
+      : '';
+
+    // trend
+    const maxTrend = Math.max(...TREND);
+    const trendBars = TREND.map((v, i) => ({
+      label: MONTH_LABELS[i],
+      heightPct: Math.round((v / maxTrend) * 100),
+      color: i === TREND.length - 1 ? accentGold : 'oklch(1 0 0 / 0.15)',
+    }));
+
+    // transactions
+    const sortedTx = this.state.transactions;
+    const recentTransactions = sortedTx.slice(0, 5).map(t => this.txRow(t));
+    const allTransactions = sortedTx.map(t => this.txRow(t));
+    const openAccountTransactions = sortedTx.filter(t => t.accountId === this.state.openAccountId).map(t => this.txRow(t));
+
+    const openAccount = this.state.openAccountId ? (() => {
+      const a = accWithBalance.find(x => x.id === this.state.openAccountId);
+      return { ...a, balanceFmt: this.fmtMoney(a.balance, false).replace('-',''), typeLabel: a.type === 'cash' ? 'Espèces' : 'Compte bancaire' };
+    })() : { name: '', color: '', balanceFmt: '', typeLabel: '' };
+
+    // tabs
+    const tabDefs = [
+      { key: 'dashboard', label: 'Accueil' },
+      { key: 'accounts', label: 'Comptes' },
+      { key: 'budgets', label: 'Budgets' },
+      { key: 'insights', label: 'Insights' },
+    ];
+    const tabs = tabDefs.map(t => {
+      const active = this.state.tab === t.key && !this.state.openAccountId;
+      return {
+        label: t.label,
+        onClick: () => this.setTab(t.key),
+        dotStyle: `width:6px;height:6px;border-radius:50%;background:${active ? accentGold : 'oklch(0.5 0.02 70)'}`,
+        labelStyle: `color:${active ? 'oklch(0.95 0.01 70)' : 'oklch(0.5 0.02 70)'};font-weight:${active ? 700 : 500}`,
+      };
+    });
+
+    // add-transaction wizard
+    const addTypeDefs = [
+      { key: 'depense', label: 'Dépense' },
+      { key: 'revenu', label: 'Revenu' },
+      { key: 'transfert', label: 'Transfert' },
+    ];
+    const addTypes = addTypeDefs.map(t => ({
+      label: t.label,
+      onClick: () => this.setAddType(t.key),
+      style: this.state.addType === t.key
+        ? `background:${accentGold};color:oklch(0.15 0.02 60)`
+        : 'background:transparent;color:oklch(0.68 0.02 70)',
+    }));
+
+    const amountKeyLabels = ['1','2','3','4','5','6','7','8','9','','0','del'];
+    const amountKeys = amountKeyLabels.map(label => {
+      if (label === '') return { label: '', onClick: () => {}, style: 'height:52px' };
+      const isDel = label === 'del';
+      return {
+        label: isDel ? '⌫' : label,
+        onClick: isDel ? () => this.pressAmountDelete() : () => this.pressAmountDigit(label),
+        style: `height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:${isDel ? 18 : 20}px;font-weight:600;color:oklch(0.9 0.01 70);background:oklch(1 0 0 / 0.05);cursor:pointer`,
+      };
+    });
+    const addAmountFmt = (this.state.addAmount ? fmtNum(parseInt(this.state.addAmount, 10)) : '0') + ' MRU';
+
+    const canGoStep2 = !!this.state.addAmount && parseInt(this.state.addAmount, 10) > 0;
+    const nextButtonStyle = `text-align:center;padding:14px;border-radius:14px;margin-top:22px;font-size:14px;font-weight:700;cursor:${canGoStep2 ? 'pointer' : 'default'};background:${canGoStep2 ? accentGold : 'oklch(1 0 0 / 0.08)'};color:${canGoStep2 ? 'oklch(0.15 0.02 60)' : 'oklch(0.5 0.02 70)'}`;
+
+    const aiEnabled = this.props.aiSuggestions ?? true;
+    const suggestedCategoryId = aiEnabled ? this.suggestCategory(this.state.addLabel) : null;
+    const hasSuggestion = !!suggestedCategoryId && this.state.addType !== 'transfert';
+    const suggestedCategoryName = hasSuggestion ? this.catById(suggestedCategoryId).name : '';
+    const effectiveCategoryId = this.state.addCategoryId || suggestedCategoryId;
+
+    const addStepAccounts = accWithBalance.map(a => ({
+      name: a.name,
+      onClick: () => this.selectAddAccount(a.id),
+      style: this.state.addAccountId === a.id
+        ? `background:${accentGold};color:oklch(0.15 0.02 60)`
+        : 'background:oklch(1 0 0 / 0.05);color:oklch(0.85 0.01 70)',
+    }));
+    const addStepDestAccounts = accWithBalance.filter(a => a.id !== this.state.addAccountId).map(a => ({
+      name: a.name,
+      onClick: () => this.selectAddDestAccount(a.id),
+      style: this.state.addDestAccountId === a.id
+        ? `background:${accentGold};color:oklch(0.15 0.02 60)`
+        : 'background:oklch(1 0 0 / 0.05);color:oklch(0.85 0.01 70)',
+    }));
+    const addCategories = CATEGORIES.map(c => {
+      const selected = effectiveCategoryId === c.id;
+      return {
+        name: c.name, color: c.color,
+        onClick: () => this.selectAddCategory(c.id),
+        style: selected
+          ? `background:oklch(1 0 0 / 0.1);color:oklch(0.95 0.01 70);border:1px solid ${c.color}`
+          : 'background:oklch(1 0 0 / 0.04);color:oklch(0.75 0.01 70);border:1px solid transparent',
+      };
+    });
+
+    const addTypeIsTransfert = this.state.addType === 'transfert';
+    const addTypeIsNotTransfert = !addTypeIsTransfert;
+    const canGoStep3 = addTypeIsTransfert
+      ? !!(this.state.addAccountId && this.state.addDestAccountId)
+      : !!this.state.addAccountId;
+    const step2NextStyle = `flex:2;text-align:center;padding:14px;border-radius:14px;font-size:14px;font-weight:700;cursor:${canGoStep3 ? 'pointer' : 'default'};background:${canGoStep3 ? accentGold : 'oklch(1 0 0 / 0.06)'};color:${canGoStep3 ? 'oklch(0.15 0.02 60)' : 'oklch(0.5 0.02 70)'}`;
+
+    const addTypeLabelMap = { depense: 'Dépense', revenu: 'Revenu', transfert: 'Transfert' };
+    const addAccountObj = this.accById(this.state.addAccountId);
+    const addDestAccountObj = this.accById(this.state.addDestAccountId);
+
+    return {
+      isLocked, isUnlocked: !isLocked,
+      pinDots, pinKeys, pinShakeStyle, pinErrorMsg,
+      isTabDashboard: this.state.tab === 'dashboard' && !this.state.openAccountId,
+      isTabAccounts: this.state.tab === 'accounts' && !this.state.openAccountId,
+      isTabBudgets: this.state.tab === 'budgets' && !this.state.openAccountId,
+      isTabInsights: this.state.tab === 'insights' && !this.state.openAccountId,
+      globalBalanceFmt: this.fmtMoney(globalBalance, false),
+      hasAlerts, alertsMsg, goToBudgets: () => this.goToBudgets(),
+      dashboardAccounts, accountsTabList,
+      categoryLegend, donutGradient,
+      trendBars,
+      recentTransactions, allTransactions,
+      budgetsList,
+      monthlySummary: "Ce mois-ci, vos dépenses (194 600 MRU) restent globalement maîtrisées. Le poste Logement dépasse son plafond de 5 000 MRU à cause du loyer, tandis que Alimentation approche 89% de son budget. Votre solde global a progressé de 6.6% par rapport au mois dernier.",
+      anomalies: [
+        { title: 'Loyer supérieur au budget', detail: 'La dépense Logement de 95 000 MRU dépasse le plafond mensuel de 90 000 MRU.' },
+        { title: 'Dépense alimentaire au-dessus de la moyenne', detail: 'Le restaurant du 05/07 (6 800 MRU) est 2.4x supérieur à vos dépenses alimentaires habituelles.' },
+      ],
+      forecast: "Au rythme actuel, vous devriez terminer le mois avec un solde global proche de 415 000 MRU. Réduire les sorties (Loisirs) de 15% permettrait de compenser le dépassement du budget Logement.",
+      tabs,
+      isAccountOpen: !!this.state.openAccountId, openAccount, openAccountTransactions, closeAccount: () => this.closeAccount(),
+      isAddOpen: this.state.addOpen, openAdd: () => this.openAdd(), closeAdd: () => this.closeAdd(),
+      addTypes, addTypeIsTransfert, addTypeIsNotTransfert,
+      addStepIs1: this.state.addStep === 1, addStepIs2: this.state.addStep === 2, addStepIs3: this.state.addStep === 3,
+      amountKeys, addAmountFmt, nextButtonStyle, goStep1: () => this.goStep1(), goStep2: () => this.goStep2(), goStep3: () => this.goStep3(),
+      addLabel: this.state.addLabel, onLabelChange: (e) => this.onLabelChange(e),
+      addStepAccounts, addStepDestAccounts, addCategories,
+      hasSuggestion, suggestedCategoryName,
+      step2NextStyle,
+      addTypeLabel: addTypeLabelMap[this.state.addType],
+      addAccountName: addAccountObj ? addAccountObj.name : '—',
+      addDestAccountName: addDestAccountObj ? addDestAccountObj.name : '—',
+      addCategoryName: effectiveCategoryId ? this.catById(effectiveCategoryId).name : '—',
+      addLabelDisplay: this.state.addLabel || '—',
+      todayFmt: this.todayLong(),
+      confirmAdd: () => this.confirmAdd(),
+      isToastOpen: !!this.state.toastMsg, toastMsg: this.state.toastMsg,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
