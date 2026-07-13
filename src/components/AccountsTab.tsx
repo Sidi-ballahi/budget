@@ -1,5 +1,6 @@
 "use client";
 
+import { Landmark, Plus, Wallet } from "lucide-react";
 import { colors } from "@/lib/theme";
 import { fmtMoney } from "@/lib/present";
 import { TransactionList } from "./TransactionRow";
@@ -10,15 +11,35 @@ export function AccountsTab({
   categories,
   transactions,
   onOpenAccount,
+  onAddAccount,
 }: {
   accounts: Account[];
   categories: Category[];
   transactions: Transaction[];
   onOpenAccount: (id: string) => void;
+  onAddAccount: () => void;
 }) {
   return (
     <div>
-      <div style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary, marginBottom: 18 }}>Comptes</div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+        <div style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary }}>Comptes</div>
+        <div
+          onClick={onAddAccount}
+          style={{
+            width: 30,
+            height: 30,
+            borderRadius: "50%",
+            background: colors.white8,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: colors.textSecondary,
+            cursor: "pointer",
+          }}
+        >
+          <Plus size={16} />
+        </div>
+      </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
         {accounts.map((acc) => (
           <div
@@ -35,7 +56,9 @@ export function AccountsTab({
               cursor: "pointer",
             }}
           >
-            <div style={{ width: 38, height: 38, borderRadius: 12, background: acc.couleur, flexShrink: 0 }} />
+            <div style={{ width: 38, height: 38, borderRadius: 12, background: acc.couleur, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {acc.type === "cash" ? <Wallet size={17} color={colors.neutralIcon} /> : <Landmark size={17} color={colors.neutralIcon} />}
+            </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 14.5, fontWeight: 600, color: colors.textSecondary }}>{acc.nom}</div>
               <div style={{ fontSize: 12, color: colors.textFaint }}>{acc.type === "cash" ? "Espèces" : "Compte bancaire"}</div>

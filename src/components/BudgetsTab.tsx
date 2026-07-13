@@ -1,14 +1,44 @@
 "use client";
 
+import { Plus, Tag } from "lucide-react";
 import { colors } from "@/lib/theme";
 import { fmtNum } from "@/lib/present";
 import type { BudgetProgress, Category } from "@/lib/types";
 
-export function BudgetsTab({ budgets, categories }: { budgets: BudgetProgress[]; categories: Category[] }) {
+export function BudgetsTab({
+  budgets,
+  categories,
+  onAddBudget,
+}: {
+  budgets: BudgetProgress[];
+  categories: Category[];
+  onAddBudget: () => void;
+}) {
   return (
     <div>
-      <div style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary, marginBottom: 6 }}>Budgets</div>
-      <div style={{ fontSize: 12.5, color: colors.textFaint, marginBottom: 18 }}>Plafonds mensuels par catégorie</div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 }}>
+        <div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary, marginBottom: 6 }}>Budgets</div>
+          <div style={{ fontSize: 12.5, color: colors.textFaint }}>Plafonds mensuels par catégorie</div>
+        </div>
+        <div
+          onClick={onAddBudget}
+          style={{
+            width: 30,
+            height: 30,
+            borderRadius: "50%",
+            background: colors.white8,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: colors.textSecondary,
+            cursor: "pointer",
+            flexShrink: 0,
+          }}
+        >
+          <Plus size={16} />
+        </div>
+      </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {budgets.map((b) => {
           const cat = categories.find((c) => c.id === b.categorieId);
@@ -20,7 +50,7 @@ export function BudgetsTab({ budgets, categories }: { budgets: BudgetProgress[];
             <div key={b.id} style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 18, padding: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ width: 9, height: 9, borderRadius: 3, background: cat?.couleur ?? colors.textFaint }} />
+                  <Tag size={14} color={cat?.couleur ?? colors.textFaint} />
                   <div style={{ fontSize: 14, fontWeight: 600, color: colors.textSecondary }}>{cat?.nom ?? b.categorieId}</div>
                 </div>
                 {isAlert && (

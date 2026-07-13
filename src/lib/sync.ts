@@ -1,5 +1,5 @@
 import { db, type LocalBudget } from "./db";
-import type { Bootstrap, NewTransactionInput, Transaction } from "./types";
+import type { Account, Bootstrap, NewAccountInput, NewBudgetInput, NewTransactionInput, Transaction } from "./types";
 
 export function newClientId(): string {
   return crypto.randomUUID();
@@ -53,6 +53,36 @@ export async function addTransaction(input: NewTransactionInput): Promise<Transa
   await db.transactions.put(local);
   void flushQueue();
   return local;
+}
+
+// Accounts and budgets are setup actions taken while online — unlike
+// transactions they have no offline queue, so a failure surfaces immediately
+// to the caller instead of being retried silently later.
+export async function addAccount(input: NewAccountInput): Promise<Account> {
+  const res = await fetch("/api/accounts", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error("Impossible de créer le compte");
+  const { account } = (await res.json()) as { account: Account };
+  await db.accounts.put(account);
+  return account;
+}
+
+export async function addBudget(input: NewBudgetInput): Promise<LocalBudget> {
+  const res = await fetch("/api/budgets", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(typeof body?.error === "string" ? body.error : "Impossible de créer le budget");
+  }
+  const { budget } = (await res.json()) as { budget: LocalBudget };
+  await db.budgets.put(budget);
+  return budget;
 }
 
 let flushing = false;

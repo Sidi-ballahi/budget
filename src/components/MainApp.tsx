@@ -2,13 +2,15 @@
 
 import { useRef, useState } from "react";
 import { colors } from "@/lib/theme";
-import { addTransaction } from "@/lib/sync";
+import { addAccount, addBudget, addTransaction } from "@/lib/sync";
 import { DashboardTab } from "./DashboardTab";
 import { AccountsTab } from "./AccountsTab";
 import { BudgetsTab } from "./BudgetsTab";
 import { InsightsTab } from "./InsightsTab";
 import { AccountDetail } from "./AccountDetail";
 import { AddTransactionSheet } from "./AddTransactionSheet";
+import { AddAccountSheet } from "./AddAccountSheet";
+import { AddBudgetSheet } from "./AddBudgetSheet";
 import { TabBar } from "./TabBar";
 import { Toast } from "./Toast";
 import type { AppData } from "@/hooks/useAppData";
@@ -19,8 +21,11 @@ export function MainApp({ data }: { data: AppData }) {
   const [tab, setTab] = useState<Tab>("dashboard");
   const [openAccountId, setOpenAccountId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [addAccountOpen, setAddAccountOpen] = useState(false);
+  const [addBudgetOpen, setAddBudgetOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const categoriesWithoutBudget = categories.filter((c) => !budgets.some((b) => b.categorieId === c.id));
 
   const openAccount = accounts.find((a) => a.id === openAccountId);
 
@@ -55,9 +60,15 @@ export function MainApp({ data }: { data: AppData }) {
           />
         )}
         {tab === "accounts" && (
-          <AccountsTab accounts={accounts} categories={categories} transactions={transactions} onOpenAccount={setOpenAccountId} />
+          <AccountsTab
+            accounts={accounts}
+            categories={categories}
+            transactions={transactions}
+            onOpenAccount={setOpenAccountId}
+            onAddAccount={() => setAddAccountOpen(true)}
+          />
         )}
-        {tab === "budgets" && <BudgetsTab budgets={budgets} categories={categories} />}
+        {tab === "budgets" && <BudgetsTab budgets={budgets} categories={categories} onAddBudget={() => setAddBudgetOpen(true)} />}
         {tab === "insights" && (
           <InsightsTab accounts={accounts} categories={categories} budgets={budgets} transactions={transactions} />
         )}
@@ -84,6 +95,31 @@ export function MainApp({ data }: { data: AppData }) {
             addTransaction(input);
             setAddOpen(false);
             setToast("Transaction ajoutée");
+            window.setTimeout(() => setToast(null), 2200);
+          }}
+        />
+      )}
+
+      {addAccountOpen && (
+        <AddAccountSheet
+          onClose={() => setAddAccountOpen(false)}
+          onConfirm={async (input) => {
+            await addAccount(input);
+            setAddAccountOpen(false);
+            setToast("Compte créé");
+            window.setTimeout(() => setToast(null), 2200);
+          }}
+        />
+      )}
+
+      {addBudgetOpen && (
+        <AddBudgetSheet
+          categories={categoriesWithoutBudget}
+          onClose={() => setAddBudgetOpen(false)}
+          onConfirm={async (input) => {
+            await addBudget(input);
+            setAddBudgetOpen(false);
+            setToast("Budget créé");
             window.setTimeout(() => setToast(null), 2200);
           }}
         />

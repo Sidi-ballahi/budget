@@ -84,3 +84,17 @@ export interface NewTransactionInput {
   date: string;
   creeHorsLigne?: boolean;
 }
+
+export interface NewAccountInput {
+  nom: string;
+  type: AccountType;
+  soldeInitial: number;
+  couleur: string;
+  devise?: string;
+}
+
+export interface NewBudgetInput {
+  categorieId: string;
+  montantLimite: number;
+  seuilAlerte?: number;
+}

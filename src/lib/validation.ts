@@ -13,3 +13,21 @@ export const newTransactionSchema = z.object({
 });
 
 export type NewTransactionParsed = z.infer<typeof newTransactionSchema>;
+
+export const newAccountSchema = z.object({
+  nom: z.string().min(1).max(60),
+  type: z.enum(["banque", "cash"]),
+  soldeInitial: z.number(),
+  couleur: z.string().min(1),
+  devise: z.string().min(1).default("MRU"),
+});
+
+export type NewAccountParsed = z.infer<typeof newAccountSchema>;
+
+export const newBudgetSchema = z.object({
+  categorieId: z.string().min(1),
+  montantLimite: z.number().positive(),
+  seuilAlerte: z.number().int().min(1).max(100).default(80),
+});
+
+export type NewBudgetParsed = z.infer<typeof newBudgetSchema>;
