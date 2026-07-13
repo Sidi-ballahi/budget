@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Sparkles, Wallet, PiggyBank } from "lucide-react";
+import { CalendarClock, Home, Sparkles, Users, Wallet, PiggyBank } from "lucide-react";
 import { colors } from "@/lib/theme";
 import type { Tab } from "@/lib/types";
 
@@ -8,6 +8,8 @@ const TAB_DEFS: { key: Tab; label: string; Icon: typeof Home }[] = [
   { key: "dashboard", label: "Accueil", Icon: Home },
   { key: "accounts", label: "Comptes", Icon: Wallet },
   { key: "budgets", label: "Budgets", Icon: PiggyBank },
+  { key: "planned", label: "Prévu", Icon: CalendarClock },
+  { key: "friends", label: "Amis", Icon: Users },
   { key: "insights", label: "Insights", Icon: Sparkles },
 ];
 
@@ -53,9 +55,9 @@ export function TabBar({ tab, onTab, onAdd }: { tab: Tab; onTab: (t: Tab) => voi
           const active = tab === t.key;
           const Icon = t.Icon;
           return (
-            <div key={t.key} onClick={() => onTab(t.key)} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}>
+            <div key={t.key} onClick={() => onTab(t.key)} style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}>
               <Icon size={19} color={active ? colors.accentGreen : colors.textFaint} strokeWidth={active ? 2.4 : 2} />
-              <div style={{ fontSize: 10.5, color: active ? colors.textPrimary : colors.textFaint, fontWeight: active ? 700 : 500 }}>{t.label}</div>
+              <div style={{ fontSize: 10, color: active ? colors.textPrimary : colors.textFaint, fontWeight: active ? 700 : 500, whiteSpace: "nowrap" }}>{t.label}</div>
             </div>
           );
         })}

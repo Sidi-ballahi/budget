@@ -1,5 +1,20 @@
 import { db, type LocalBudget } from "./db";
-import type { Account, Bootstrap, Category, NewAccountInput, NewBudgetInput, NewCategoryInput, NewTransactionInput, Transaction } from "./types";
+import type {
+  Account,
+  Ami,
+  Bootstrap,
+  Category,
+  Echeance,
+  NewAccountInput,
+  NewAmiInput,
+  NewBudgetInput,
+  NewCategoryInput,
+  NewEcheanceInput,
+  NewPretInput,
+  NewTransactionInput,
+  PretMouvement,
+  Transaction,
+} from "./types";
 
 export function newClientId(): string {
   return crypto.randomUUID();
@@ -11,7 +26,7 @@ export async function hydrateFromServer(): Promise<Bootstrap | null> {
     if (!res.ok) return null;
     const data: Bootstrap = await res.json();
 
-    await db.transaction("rw", db.accounts, db.categories, db.budgets, db.settings, async () => {
+    await db.transaction("rw", [db.accounts, db.categories, db.budgets, db.echeances, db.amis, db.prets, db.settings], async () => {
       await db.accounts.bulkPut(data.accounts);
       await db.categories.bulkPut(data.categories);
       const budgets: LocalBudget[] = data.budgets.map((b) => ({
@@ -21,6 +36,13 @@ export async function hydrateFromServer(): Promise<Bootstrap | null> {
         seuilAlerte: b.seuilAlerte,
       }));
       await db.budgets.bulkPut(budgets);
+      // Server is the source of truth for these (no offline queue): replace.
+      await db.echeances.clear();
+      await db.echeances.bulkPut(data.echeances ?? []);
+      await db.amis.clear();
+      await db.amis.bulkPut(data.amis ?? []);
+      await db.prets.clear();
+      await db.prets.bulkPut(data.prets ?? []);
       await db.settings.put({ id: 1, ...data.settings });
     });
 
@@ -95,6 +117,61 @@ export async function addCategory(input: NewCategoryInput): Promise<Category> {
   const { category } = (await res.json()) as { category: Category };
   await db.categories.put(category);
   return category;
+}
+
+export async function addEcheance(input: NewEcheanceInput): Promise<Echeance> {
+  const res = await fetch("/api/echeances", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error("Impossible de créer l'échéance");
+  const { echeance } = (await res.json()) as { echeance: Echeance };
+  await db.echeances.put(echeance);
+  return echeance;
+}
+
+// Marks an echeance as paid: the server creates the real transaction and
+// advances prochaineDate (or deactivates a one-off prevision).
+export async function payerEcheance(id: string): Promise<Echeance> {
+  const res = await fetch("/api/echeances/payer", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, clientId: newClientId(), date: new Date().toISOString() }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(typeof body?.error === "string" ? body.error : "Impossible d'enregistrer le paiement");
+  }
+  const { echeance, transaction } = (await res.json()) as { echeance: Echeance; transaction: Transaction };
+  await db.transactions.put(transaction);
+  await db.echeances.put(echeance);
+  return echeance;
+}
+
+export async function addAmi(input: NewAmiInput): Promise<Ami> {
+  const res = await fetch("/api/amis", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error("Impossible d'ajouter l'ami");
+  const { ami } = (await res.json()) as { ami: Ami };
+  await db.amis.put(ami);
+  return ami;
+}
+
+export async function addPret(input: NewPretInput): Promise<PretMouvement> {
+  const res = await fetch("/api/prets", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error("Impossible d'enregistrer le mouvement");
+  const { pret, transaction } = (await res.json()) as { pret: PretMouvement; transaction: Transaction | null };
+  if (transaction) await db.transactions.put(transaction);
+  await db.prets.put(pret);
+  return pret;
 }
 
 let flushing = false;

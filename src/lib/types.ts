@@ -1,7 +1,9 @@
 export type AccountType = "banque" | "cash";
 export type TransactionType = "depense" | "revenu" | "transfert";
 export type CategoryType = "depense" | "revenu";
-export type Tab = "dashboard" | "accounts" | "budgets" | "insights";
+export type Recurrence = "ponctuel" | "hebdomadaire" | "mensuel" | "annuel";
+export type PretDirection = "donne" | "recu";
+export type Tab = "dashboard" | "accounts" | "budgets" | "planned" | "friends" | "insights";
 
 export interface Account {
   id: string;
@@ -45,6 +47,35 @@ export interface BudgetProgress {
   spent: number;
 }
 
+export interface Echeance {
+  id: string;
+  nom: string;
+  type: CategoryType;
+  montant: number;
+  recurrence: Recurrence;
+  prochaineDate: string; // ISO
+  compteId: string | null;
+  categorieId: string | null;
+  actif: boolean;
+}
+
+export interface Ami {
+  id: string;
+  nom: string;
+  couleur: string;
+}
+
+export interface PretMouvement {
+  id: string;
+  amiId: string;
+  direction: PretDirection;
+  montant: number;
+  note: string | null;
+  date: string; // ISO
+  compteId: string | null;
+  transactionId: string | null;
+}
+
 export interface Settings {
   accentColor: string;
   aiSuggestions: boolean;
@@ -71,6 +102,9 @@ export interface Bootstrap {
   categories: Category[];
   budgets: BudgetProgress[];
   transactions: Transaction[];
+  echeances: Echeance[];
+  amis: Ami[];
+  prets: PretMouvement[];
   settings: Settings;
   trend: TrendPoint[];
 }
@@ -106,4 +140,29 @@ export interface NewCategoryInput {
   type: CategoryType;
   couleur: string;
   icone?: string | null;
+}
+
+export interface NewEcheanceInput {
+  nom: string;
+  type: CategoryType;
+  montant: number;
+  recurrence: Recurrence;
+  prochaineDate: string;
+  compteId: string;
+  categorieId?: string | null;
+}
+
+export interface NewAmiInput {
+  nom: string;
+  couleur: string;
+}
+
+export interface NewPretInput {
+  clientId: string; // dedupe key for the linked transaction
+  amiId: string;
+  direction: PretDirection;
+  montant: number;
+  note?: string | null;
+  compteId?: string | null;
+  date: string;
 }

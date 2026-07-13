@@ -40,3 +40,38 @@ export const newCategorySchema = z.object({
 });
 
 export type NewCategoryParsed = z.infer<typeof newCategorySchema>;
+
+export const newEcheanceSchema = z.object({
+  nom: z.string().min(1).max(60),
+  type: z.enum(["depense", "revenu"]),
+  montant: z.number().positive(),
+  recurrence: z.enum(["ponctuel", "hebdomadaire", "mensuel", "annuel"]),
+  prochaineDate: z.string().min(1),
+  compteId: z.string().min(1),
+  categorieId: z.string().min(1).nullable().optional(),
+});
+
+export type NewEcheanceParsed = z.infer<typeof newEcheanceSchema>;
+
+export const payerEcheanceSchema = z.object({
+  id: z.string().min(1),
+  clientId: z.string().min(1),
+  date: z.string().min(1),
+});
+
+export const newAmiSchema = z.object({
+  nom: z.string().min(1).max(60),
+  couleur: z.string().min(1),
+});
+
+export const newPretSchema = z.object({
+  clientId: z.string().min(1),
+  amiId: z.string().min(1),
+  direction: z.enum(["donne", "recu"]),
+  montant: z.number().positive(),
+  note: z.string().max(200).nullable().optional(),
+  compteId: z.string().min(1).nullable().optional(),
+  date: z.string().min(1),
+});
+
+export type NewPretParsed = z.infer<typeof newPretSchema>;

@@ -1,5 +1,13 @@
-import type { Account as PAccount, Category as PCategory, Transaction as PTransaction, Budget as PBudget } from "@/generated/prisma/client";
-import type { Account, Category, Transaction, BudgetProgress } from "./types";
+import type {
+  Account as PAccount,
+  Category as PCategory,
+  Transaction as PTransaction,
+  Budget as PBudget,
+  Echeance as PEcheance,
+  Ami as PAmi,
+  PretMouvement as PPretMouvement,
+} from "@/generated/prisma/client";
+import type { Account, Category, Transaction, BudgetProgress, Echeance, Ami, PretMouvement } from "./types";
 import { computeBalance } from "./finance";
 
 function dec(x: { toNumber: () => number } | number): number {
@@ -53,5 +61,40 @@ export function serializeBudget(row: PBudget): Omit<BudgetProgress, "spent"> {
     categorieId: row.categorieId,
     montantLimite: dec(row.montantLimite),
     seuilAlerte: row.seuilAlerte,
+  };
+}
+
+export function serializeEcheance(row: PEcheance): Echeance {
+  return {
+    id: row.id,
+    nom: row.nom,
+    type: row.type,
+    montant: dec(row.montant),
+    recurrence: row.recurrence,
+    prochaineDate: row.prochaineDate.toISOString(),
+    compteId: row.compteId,
+    categorieId: row.categorieId,
+    actif: row.actif,
+  };
+}
+
+export function serializeAmi(row: PAmi): Ami {
+  return {
+    id: row.id,
+    nom: row.nom,
+    couleur: row.couleur,
+  };
+}
+
+export function serializePret(row: PPretMouvement): PretMouvement {
+  return {
+    id: row.id,
+    amiId: row.amiId,
+    direction: row.direction,
+    montant: dec(row.montant),
+    note: row.note,
+    date: row.date.toISOString(),
+    compteId: row.compteId,
+    transactionId: row.transactionId,
   };
 }

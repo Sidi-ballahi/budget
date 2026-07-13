@@ -1,4 +1,4 @@
-import type { Account, BudgetProgress, Category, Transaction, TrendPoint } from "./types";
+import type { Account, BudgetProgress, Category, PretMouvement, Transaction, TrendPoint } from "./types";
 
 const MONTH_LABELS_FR = [
   "Jan", "Fev", "Mar", "Avr", "Mai", "Jun",
@@ -100,6 +100,14 @@ export function suggestCategoryLocal(label: string, categories: Category[]): str
 
 export function accountBalance(account: Account): number {
   return account.solde;
+}
+
+// Positive = the friend owes me, negative = I owe the friend.
+export function computeAmiBalance(amiId: string, prets: PretMouvement[]): number {
+  return prets.reduce((sum, p) => {
+    if (p.amiId !== amiId) return sum;
+    return sum + (p.direction === "donne" ? p.montant : -p.montant);
+  }, 0);
 }
 
 function fmtMRU(n: number): string {

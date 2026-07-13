@@ -1,15 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { serializeAccount, serializeBudget, serializeCategory, serializeTransaction } from "@/lib/serialize";
+import { serializeAccount, serializeAmi, serializeBudget, serializeCategory, serializeEcheance, serializePret, serializeTransaction } from "@/lib/serialize";
 import { computeBudgetProgress, computeTrend } from "@/lib/finance";
 import type { Bootstrap } from "@/lib/types";
 
 export async function GET() {
-  const [accountRows, categoryRows, budgetRows, transactionRows, settingsRow] = await Promise.all([
+  const [accountRows, categoryRows, budgetRows, transactionRows, echeanceRows, amiRows, pretRows, settingsRow] = await Promise.all([
     prisma.account.findMany({ where: { actif: true }, orderBy: { createdAt: "asc" } }),
     prisma.category.findMany({ orderBy: { nom: "asc" } }),
     prisma.budget.findMany(),
     prisma.transaction.findMany({ orderBy: { date: "desc" } }),
+    prisma.echeance.findMany({ where: { actif: true }, orderBy: { prochaineDate: "asc" } }),
+    prisma.ami.findMany({ orderBy: { createdAt: "asc" } }),
+    prisma.pretMouvement.findMany({ orderBy: { date: "desc" } }),
     prisma.appSettings.findUnique({ where: { id: 1 } }),
   ]);
 
@@ -24,6 +27,9 @@ export async function GET() {
     categories,
     budgets,
     transactions,
+    echeances: echeanceRows.map(serializeEcheance),
+    amis: amiRows.map(serializeAmi),
+    prets: pretRows.map(serializePret),
     trend,
     settings: settingsRow
       ? {

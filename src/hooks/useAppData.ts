@@ -5,7 +5,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import { hydrateFromServer, setupAutoSync } from "@/lib/sync";
 import { computeBudgetProgress, computeTrend } from "@/lib/finance";
-import type { Account, BudgetProgress, Category, Transaction } from "@/lib/types";
+import type { Account, Ami, BudgetProgress, Category, Echeance, PretMouvement, Transaction } from "@/lib/types";
 
 const EMPTY: never[] = [];
 
@@ -28,6 +28,9 @@ export function useAppData() {
   const categories = (useLiveQuery(() => db.categories.toArray(), [], EMPTY) as Category[]) ?? EMPTY;
   const rawBudgets = useLiveQuery(() => db.budgets.toArray(), [], EMPTY);
   const transactions = (useLiveQuery(() => db.transactions.orderBy("date").reverse().toArray(), [], EMPTY) ?? EMPTY) as Transaction[];
+  const echeances = (useLiveQuery(() => db.echeances.orderBy("prochaineDate").toArray(), [], EMPTY) ?? EMPTY) as Echeance[];
+  const amis = (useLiveQuery(() => db.amis.toArray(), [], EMPTY) ?? EMPTY) as Ami[];
+  const prets = (useLiveQuery(() => db.prets.orderBy("date").reverse().toArray(), [], EMPTY) ?? EMPTY) as PretMouvement[];
   const settings = useLiveQuery(() => db.settings.get(1), []);
 
   const accounts: Account[] = useMemo(() => {
@@ -50,7 +53,7 @@ export function useAppData() {
 
   const trend = useMemo(() => computeTrend(rawAccounts ?? EMPTY, transactions), [rawAccounts, transactions]);
 
-  return { ready, accounts, categories, budgets, transactions, settings, trend };
+  return { ready, accounts, categories, budgets, transactions, echeances, amis, prets, settings, trend };
 }
 
 export type AppData = ReturnType<typeof useAppData>;

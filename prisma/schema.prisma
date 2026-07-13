@@ -38,6 +38,21 @@ enum InsightType {
   prevision
 }
 
+// ponctuel = prevision one-off; the others make a charge fixe.
+enum Recurrence {
+  ponctuel
+  hebdomadaire
+  mensuel
+  annuel
+}
+
+// donne = money left my pocket toward the friend (loan or repaying him),
+// recu = money came in from the friend. Friend's balance = donne - recu.
+enum PretDirection {
+  donne
+  recu
+}
+
 model Account {
   id             String   @id @default(uuid())
   nom            String
@@ -51,6 +66,8 @@ model Account {
 
   transactions        Transaction[] @relation("SourceAccount")
   transfersIn         Transaction[] @relation("DestAccount")
+  echeances           Echeance[]
+  pretMouvements      PretMouvement[]
 
   @@map("accounts")
 }
@@ -68,6 +85,7 @@ model Category {
 
   transactions Transaction[]
   budget       Budget?
+  echeances    Echeance[]
 
   @@map("categories")
 }
@@ -90,9 +108,63 @@ model Transaction {
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
 
+  pretMouvement PretMouvement?
+
   @@index([compteId])
   @@index([date])
   @@map("transactions")
+}
+
+// Charge fixe (recurrence != ponctuel) or prevision ponctuelle. Paying one
+// creates a real Transaction and advances prochaineDate (or deactivates a
+// one-off).
+model Echeance {
+  id            String       @id @default(uuid())
+  nom           String
+  type          CategoryType
+  montant       Decimal      @db.Decimal(14, 2)
+  recurrence    Recurrence   @default(mensuel)
+  prochaineDate DateTime
+  compteId      String?
+  compte        Account?     @relation(fields: [compteId], references: [id], onDelete: SetNull)
+  categorieId   String?
+  categorie     Category?    @relation(fields: [categorieId], references: [id], onDelete: SetNull)
+  actif         Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([prochaineDate])
+  @@map("echeances")
+}
+
+model Ami {
+  id        String   @id @default(uuid())
+  nom       String
+  couleur   String
+  createdAt DateTime @default(now())
+
+  mouvements PretMouvement[]
+
+  @@map("amis")
+}
+
+model PretMouvement {
+  id            String        @id @default(uuid())
+  amiId         String
+  ami           Ami           @relation(fields: [amiId], references: [id], onDelete: Cascade)
+  direction     PretDirection
+  montant       Decimal       @db.Decimal(14, 2)
+  note          String?
+  date          DateTime      @default(now())
+  compteId      String?
+  compte        Account?      @relation(fields: [compteId], references: [id], onDelete: SetNull)
+  // Linked Transaction when a compte was chosen, so the account balance moves too.
+  transactionId String?       @unique
+  transaction   Transaction?  @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+  createdAt     DateTime      @default(now())
+
+  @@index([amiId])
+  @@map("pret_mouvements")
 }
 
 model Budget {
