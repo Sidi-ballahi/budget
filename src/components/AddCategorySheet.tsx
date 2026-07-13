@@ -1,19 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { Landmark, Wallet, X } from "lucide-react";
+import { ArrowDownCircle, ArrowUpCircle, X } from "lucide-react";
 import { colors, COLOR_SWATCHES } from "@/lib/theme";
-import type { AccountType, NewAccountInput } from "@/lib/types";
+import type { CategoryType, NewCategoryInput } from "@/lib/types";
 
-const TYPE_DEFS: { key: AccountType; label: string; Icon: typeof Landmark }[] = [
-  { key: "banque", label: "Compte bancaire", Icon: Landmark },
-  { key: "cash", label: "Espèces", Icon: Wallet },
+const TYPE_DEFS: { key: CategoryType; label: string; Icon: typeof ArrowDownCircle }[] = [
+  { key: "depense", label: "Dépense", Icon: ArrowDownCircle },
+  { key: "revenu", label: "Revenu", Icon: ArrowUpCircle },
 ];
 
-export function AddAccountSheet({ onClose, onConfirm }: { onClose: () => void; onConfirm: (input: NewAccountInput) => Promise<void> | void }) {
+export function AddCategorySheet({
+  defaultType,
+  onClose,
+  onConfirm,
+}: {
+  defaultType: CategoryType;
+  onClose: () => void;
+  onConfirm: (input: NewCategoryInput) => Promise<void> | void;
+}) {
   const [nom, setNom] = useState("");
-  const [type, setType] = useState<AccountType>("banque");
-  const [soldeInitial, setSoldeInitial] = useState("");
+  const [type, setType] = useState<CategoryType>(defaultType);
   const [couleur, setCouleur] = useState(COLOR_SWATCHES[0]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,21 +32,16 @@ export function AddAccountSheet({ onClose, onConfirm }: { onClose: () => void; o
     setSaving(true);
     setError(null);
     try {
-      await onConfirm({
-        nom: nom.trim(),
-        type,
-        soldeInitial: soldeInitial ? parseFloat(soldeInitial) : 0,
-        couleur,
-      });
+      await onConfirm({ nom: nom.trim(), type, couleur });
     } catch {
-      setError("Impossible de créer le compte. Vérifie ta connexion.");
+      setError("Impossible de créer la catégorie. Vérifie ta connexion.");
       setSaving(false);
     }
   }
 
   return (
     <>
-      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "oklch(0 0 0 / 0.5)", zIndex: 20 }} />
+      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "oklch(0 0 0 / 0.5)", zIndex: 30 }} />
       <div
         style={{
           position: "absolute",
@@ -48,7 +50,7 @@ export function AddAccountSheet({ onClose, onConfirm }: { onClose: () => void; o
           bottom: 0,
           background: colors.sheetBg,
           borderRadius: "26px 26px 0 0",
-          zIndex: 21,
+          zIndex: 31,
           boxSizing: "border-box",
           padding: "14px 18px calc(env(safe-area-inset-bottom, 0px) + 28px)",
           boxShadow: "0 -20px 40px oklch(0 0 0 / 0.4)",
@@ -57,7 +59,7 @@ export function AddAccountSheet({ onClose, onConfirm }: { onClose: () => void; o
         <div style={{ width: 36, height: 4, borderRadius: 100, background: colors.white15, alignSelf: "center", margin: "0 auto 16px" }} />
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary }}>Nouveau compte</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary }}>Nouvelle catégorie</div>
           <div
             onClick={onClose}
             style={{ width: 28, height: 28, borderRadius: "50%", background: colors.white8, display: "flex", alignItems: "center", justifyContent: "center", color: colors.textMuted, cursor: "pointer" }}
@@ -70,7 +72,7 @@ export function AddAccountSheet({ onClose, onConfirm }: { onClose: () => void; o
         <input
           value={nom}
           onChange={(e) => setNom(e.target.value)}
-          placeholder="ex : Banque D, Épargne…"
+          placeholder="ex : Assurance, Freelance…"
           style={{
             width: "100%",
             boxSizing: "border-box",
@@ -110,26 +112,6 @@ export function AddAccountSheet({ onClose, onConfirm }: { onClose: () => void; o
           ))}
         </div>
 
-        <div style={{ fontSize: 12.5, fontWeight: 700, color: colors.textMuted, marginBottom: 8 }}>SOLDE INITIAL (MRU)</div>
-        <input
-          value={soldeInitial}
-          onChange={(e) => setSoldeInitial(e.target.value.replace(/[^0-9.]/g, ""))}
-          placeholder="0"
-          inputMode="decimal"
-          style={{
-            width: "100%",
-            boxSizing: "border-box",
-            background: colors.card,
-            border: `1px solid ${colors.white8}`,
-            borderRadius: 12,
-            padding: "12px 14px",
-            color: colors.textSecondary,
-            fontSize: 14,
-            fontFamily: "inherit",
-            marginBottom: 18,
-          }}
-        />
-
         <div style={{ fontSize: 12.5, fontWeight: 700, color: colors.textMuted, marginBottom: 8 }}>COULEUR</div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 22 }}>
           {COLOR_SWATCHES.map((c) => (
@@ -163,7 +145,7 @@ export function AddAccountSheet({ onClose, onConfirm }: { onClose: () => void; o
             color: canSave ? colors.neutralIcon : colors.textFaint,
           }}
         >
-          {saving ? "Création…" : "Créer le compte"}
+          {saving ? "Création…" : "Créer la catégorie"}
         </div>
       </div>
     </>

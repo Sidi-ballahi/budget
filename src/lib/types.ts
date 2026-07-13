@@ -1,5 +1,6 @@
 export type AccountType = "banque" | "cash";
 export type TransactionType = "depense" | "revenu" | "transfert";
+export type CategoryType = "depense" | "revenu";
 export type Tab = "dashboard" | "accounts" | "budgets" | "insights";
 
 export interface Account {
@@ -16,6 +17,7 @@ export interface Account {
 export interface Category {
   id: string;
   nom: string;
+  type: CategoryType;
   couleur: string;
   icone: string | null;
   keywords: string[];
@@ -97,4 +99,11 @@ export interface NewBudgetInput {
   categorieId: string;
   montantLimite: number;
   seuilAlerte?: number;
+}
+
+export interface NewCategoryInput {
+  nom: string;
+  type: CategoryType;
+  couleur: string;
+  icone?: string | null;
 }

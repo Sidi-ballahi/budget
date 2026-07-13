@@ -24,6 +24,7 @@ export function serializeCategory(row: PCategory): Category {
   return {
     id: row.id,
     nom: row.nom,
+    type: row.type,
     couleur: row.couleur,
     icone: row.icone,
     keywords: row.keywords,

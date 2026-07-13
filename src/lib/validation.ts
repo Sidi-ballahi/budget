@@ -31,3 +31,12 @@ export const newBudgetSchema = z.object({
 });
 
 export type NewBudgetParsed = z.infer<typeof newBudgetSchema>;
+
+export const newCategorySchema = z.object({
+  nom: z.string().min(1).max(60),
+  type: z.enum(["depense", "revenu"]),
+  couleur: z.string().min(1),
+  icone: z.string().nullable().optional(),
+});
+
+export type NewCategoryParsed = z.infer<typeof newCategorySchema>;

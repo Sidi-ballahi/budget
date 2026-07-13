@@ -25,7 +25,7 @@ export function MainApp({ data }: { data: AppData }) {
   const [addBudgetOpen, setAddBudgetOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const categoriesWithoutBudget = categories.filter((c) => !budgets.some((b) => b.categorieId === c.id));
+  const categoriesWithoutBudget = categories.filter((c) => c.type === "depense" && !budgets.some((b) => b.categorieId === c.id));
 
   const openAccount = accounts.find((a) => a.id === openAccountId);
 

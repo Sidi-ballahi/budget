@@ -1,5 +1,5 @@
 import { db, type LocalBudget } from "./db";
-import type { Account, Bootstrap, NewAccountInput, NewBudgetInput, NewTransactionInput, Transaction } from "./types";
+import type { Account, Bootstrap, Category, NewAccountInput, NewBudgetInput, NewCategoryInput, NewTransactionInput, Transaction } from "./types";
 
 export function newClientId(): string {
   return crypto.randomUUID();
@@ -83,6 +83,18 @@ export async function addBudget(input: NewBudgetInput): Promise<LocalBudget> {
   const { budget } = (await res.json()) as { budget: LocalBudget };
   await db.budgets.put(budget);
   return budget;
+}
+
+export async function addCategory(input: NewCategoryInput): Promise<Category> {
+  const res = await fetch("/api/categories", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error("Impossible de créer la catégorie");
+  const { category } = (await res.json()) as { category: Category };
+  await db.categories.put(category);
+  return category;
 }
 
 let flushing = false;

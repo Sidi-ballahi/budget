@@ -18,34 +18,53 @@ const CATEGORIES = [
   {
     id: "alim",
     nom: "Alimentation",
+    type: "depense" as const,
     couleur: "oklch(0.72 0.14 80)",
     keywords: ["resto", "restaurant", "cafe", "supermarche", "nema", "course", "courses", "alimentation"],
   },
   {
     id: "transport",
     nom: "Transport",
+    type: "depense" as const,
     couleur: "oklch(0.72 0.14 230)",
     keywords: ["taxi", "essence", "bus", "aeroport", "transport", "carburant"],
   },
   {
     id: "logement",
     nom: "Logement",
+    type: "depense" as const,
     couleur: "oklch(0.72 0.14 300)",
     keywords: ["loyer", "logement", "appartement", "electricite", "eau"],
   },
   {
     id: "loisirs",
     nom: "Loisirs",
+    type: "depense" as const,
     couleur: "oklch(0.72 0.14 150)",
     keywords: ["cinema", "loisir", "sport", "sortie"],
   },
   {
     id: "sante",
     nom: "Santé",
+    type: "depense" as const,
     couleur: "oklch(0.68 0.15 25)",
     keywords: ["pharmacie", "medecin", "sante", "hopital"],
   },
-  { id: "autres", nom: "Autres", couleur: "oklch(0.55 0.02 70)", keywords: [] },
+  { id: "autres", nom: "Autres", type: "depense" as const, couleur: "oklch(0.55 0.02 70)", keywords: [] },
+  {
+    id: "salaire",
+    nom: "Salaire",
+    type: "revenu" as const,
+    couleur: "oklch(0.72 0.14 150)",
+    keywords: ["salaire", "paie", "virement"],
+  },
+  {
+    id: "autres_revenus",
+    nom: "Autres revenus",
+    type: "revenu" as const,
+    couleur: "oklch(0.55 0.02 70)",
+    keywords: [],
+  },
 ];
 
 const BUDGETS = [
@@ -60,7 +79,7 @@ const BUDGETS = [
 const TRANSACTIONS = [
   { date: "2026-07-12", label: "Supermarché Nema", catId: "alim", accountId: "a", montant: 4500, type: "depense" as const },
   { date: "2026-07-11", label: "Taxi aéroport", catId: "transport", accountId: "cash", montant: 3000, type: "depense" as const },
-  { date: "2026-07-10", label: "Salaire Juillet", catId: "autres", accountId: "a", montant: 180000, type: "revenu" as const },
+  { date: "2026-07-10", label: "Salaire Juillet", catId: "salaire", accountId: "a", montant: 180000, type: "revenu" as const },
   { date: "2026-07-09", label: "Loyer appartement", catId: "logement", accountId: "b", montant: 95000, type: "depense" as const },
   { date: "2026-07-08", label: "Retrait espèces", catId: null, accountId: "a", destAccountId: "cash", montant: 20000, type: "transfert" as const },
   { date: "2026-07-07", label: "Pharmacie", catId: "sante", accountId: "c", montant: 2200, type: "depense" as const },
@@ -83,7 +102,7 @@ async function main() {
     await prisma.category.upsert({
       where: { id: cat.id },
       update: {},
-      create: { ...cat, type: "depense" },
+      create: cat,
     });
   }
 

@@ -11,7 +11,10 @@ export function fmtMoney(n: number, showSign: boolean): string {
 }
 
 export function catById(categories: Category[], id: string | null): Category {
-  return categories.find((c) => c.id === id) ?? categories[categories.length - 1] ?? { id: "autres", nom: "Autres", couleur: colors.textFaint, icone: null, keywords: [] };
+  return (
+    categories.find((c) => c.id === id) ??
+    categories[categories.length - 1] ?? { id: "autres", nom: "Autres", type: "depense", couleur: colors.textFaint, icone: null, keywords: [] }
+  );
 }
 
 export function accById(accounts: Account[], id: string | null): Account | undefined {

@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Plus, Tag } from "lucide-react";
 import { colors } from "@/lib/theme";
 import { fmtNum, todayLong } from "@/lib/present";
 import { suggestCategoryLocal } from "@/lib/finance";
+import { addCategory } from "@/lib/sync";
+import { AddCategorySheet } from "./AddCategorySheet";
 import type { Account, Category, NewTransactionInput, TransactionType } from "@/lib/types";
 
-const AMOUNT_KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del"];
 const TYPE_DEFS: { key: TransactionType; label: string }[] = [
   { key: "depense", label: "Dépense" },
   { key: "revenu", label: "Revenu" },
@@ -32,13 +34,19 @@ export function AddTransactionSheet({
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [label, setLabel] = useState("");
   const [aiSuggestion, setAiSuggestion] = useState<{ label: string; categoryId: string } | null>(null);
+  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
 
   const isTransfert = type === "transfert";
-  const amountNum = amount ? parseInt(amount, 10) : 0;
+  const amountNum = amount ? parseFloat(amount) : 0;
+
+  const categoriesForType = useMemo(
+    () => (isTransfert ? [] : categories.filter((c) => c.type === type)),
+    [categories, type, isTransfert]
+  );
 
   const localSuggestion = useMemo(
-    () => (isTransfert ? null : suggestCategoryLocal(label, categories)),
-    [label, categories, isTransfert]
+    () => (isTransfert ? null : suggestCategoryLocal(label, categoriesForType)),
+    [label, categoriesForType, isTransfert]
   );
   const suggestedCategoryId = (aiSuggestion?.label === label ? aiSuggestion.categoryId : null) ?? localSuggestion;
   const effectiveCategoryId = categoryId ?? suggestedCategoryId;
@@ -60,13 +68,6 @@ export function AddTransactionSheet({
     return () => window.clearTimeout(timeout);
   }, [label, isTransfert]);
 
-  function pressDigit(d: string) {
-    if (amount.length >= 9) return;
-    setAmount(amount + d);
-  }
-  function pressDelete() {
-    setAmount(amount.slice(0, -1));
-  }
   function selectType(t: TransactionType) {
     setType(t);
     setCategoryId(null);
@@ -85,7 +86,7 @@ export function AddTransactionSheet({
       montant: amountNum,
       compteId: accountId,
       compteDestinationId: isTransfert ? destAccountId : null,
-      categorieId: isTransfert ? null : effectiveCategoryId ?? "autres",
+      categorieId: isTransfert ? null : effectiveCategoryId ?? categoriesForType[0]?.id ?? null,
       libelle: label || null,
       date: new Date().toISOString(),
       creeHorsLigne: typeof navigator !== "undefined" && !navigator.onLine,
@@ -167,36 +168,30 @@ export function AddTransactionSheet({
             <>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "20px 0 30px" }}>
                 <div style={{ fontSize: 12.5, color: colors.textFaint }}>Montant</div>
-                <div style={{ fontSize: 38, fontWeight: 800, color: colors.textPrimary }}>
-                  {(amount ? fmtNum(parseInt(amount, 10)) : "0") + " MRU"}
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                  <input
+                    autoFocus
+                    value={amount}
+                    onChange={(e) => {
+                      const cleaned = e.target.value.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
+                      setAmount(cleaned);
+                    }}
+                    placeholder="0"
+                    inputMode="decimal"
+                    style={{
+                      width: 200,
+                      textAlign: "right",
+                      background: "transparent",
+                      border: "none",
+                      outline: "none",
+                      fontSize: 38,
+                      fontWeight: 800,
+                      color: colors.textPrimary,
+                      fontFamily: "inherit",
+                    }}
+                  />
+                  <div style={{ fontSize: 16, fontWeight: 700, color: colors.textFaint }}>MRU</div>
                 </div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px 18px", maxWidth: 280, margin: "0 auto" }}>
-                {AMOUNT_KEYS.map((label2, i) => {
-                  if (label2 === "") return <div key={i} style={{ height: 52 }} />;
-                  const isDel = label2 === "del";
-                  return (
-                    <div
-                      key={i}
-                      onClick={() => (isDel ? pressDelete() : pressDigit(label2))}
-                      style={{
-                        height: 52,
-                        borderRadius: 14,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: isDel ? 18 : 20,
-                        fontWeight: 600,
-                        color: colors.textSecondary,
-                        background: colors.white5,
-                        cursor: "pointer",
-                        userSelect: "none",
-                      }}
-                    >
-                      {isDel ? "⌫" : label2}
-                    </div>
-                  );
-                })}
               </div>
               <div
                 onClick={() => canGoStep2 && setStep(2)}
@@ -303,7 +298,7 @@ export function AddTransactionSheet({
                     )}
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 20 }}>
-                    {categories.map((cat) => {
+                    {categoriesForType.map((cat) => {
                       const selected = effectiveCategoryId === cat.id;
                       return (
                         <div
@@ -319,11 +314,26 @@ export function AddTransactionSheet({
                             border: `1px solid ${selected ? cat.couleur : "transparent"}`,
                           }}
                         >
-                          <div style={{ width: 8, height: 8, borderRadius: 2, background: cat.couleur, margin: "0 auto 6px" }} />
+                          <Tag size={16} color={cat.couleur} style={{ margin: "0 auto 6px", display: "block" }} />
                           <div style={{ fontSize: 11.5, fontWeight: 600 }}>{cat.nom}</div>
                         </div>
                       );
                     })}
+                    <div
+                      onClick={() => setAddCategoryOpen(true)}
+                      style={{
+                        padding: "12px 8px",
+                        borderRadius: 14,
+                        textAlign: "center",
+                        cursor: "pointer",
+                        background: colors.white4,
+                        color: colors.textFaint,
+                        border: `1px dashed ${colors.white15}`,
+                      }}
+                    >
+                      <Plus size={16} style={{ margin: "0 auto 6px", display: "block" }} />
+                      <div style={{ fontSize: 11.5, fontWeight: 600 }}>Ajouter</div>
+                    </div>
                   </div>
                 </>
               )}
@@ -384,6 +394,18 @@ export function AddTransactionSheet({
           )}
         </div>
       </div>
+
+      {addCategoryOpen && (
+        <AddCategorySheet
+          defaultType={isTransfert ? "depense" : type}
+          onClose={() => setAddCategoryOpen(false)}
+          onConfirm={async (input) => {
+            const created = await addCategory(input);
+            setCategoryId(created.id);
+            setAddCategoryOpen(false);
+          }}
+        />
+      )}
     </>
   );
 }

@@ -24,3 +24,15 @@ export const colors = {
 };
 
 export const fontFamily = "'Manrope', sans-serif";
+
+// Preset swatches offered when creating an account or category.
+export const COLOR_SWATCHES = [
+  "oklch(0.72 0.14 230)",
+  "oklch(0.72 0.14 300)",
+  "oklch(0.72 0.14 80)",
+  "oklch(0.72 0.14 150)",
+  "oklch(0.68 0.15 25)",
+  "oklch(0.78 0.13 80)",
+  "oklch(0.7 0.14 190)",
+  "oklch(0.7 0.16 340)",
+];
