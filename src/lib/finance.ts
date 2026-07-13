@@ -1,0 +1,183 @@
+import type { Account, BudgetProgress, Category, Transaction, TrendPoint } from "./types";
+
+const MONTH_LABELS_FR = [
+  "Jan", "Fev", "Mar", "Avr", "Mai", "Jun",
+  "Jul", "Aou", "Sep", "Oct", "Nov", "Dec",
+];
+
+export function transactionEffect(tx: Pick<Transaction, "type" | "montant" | "compteId" | "compteDestinationId">, accountId: string): number {
+  if (tx.compteId === accountId) {
+    return tx.type === "revenu" ? tx.montant : -tx.montant;
+  }
+  if (tx.compteDestinationId === accountId && tx.type === "transfert") {
+    return tx.montant;
+  }
+  return 0;
+}
+
+export function computeBalance(soldeInitial: number, transactions: Transaction[], accountId: string): number {
+  return transactions.reduce((sum, tx) => sum + transactionEffect(tx, accountId), soldeInitial);
+}
+
+export function computeBalances<T extends { id: string; soldeInitial: number }>(
+  accounts: T[],
+  transactions: Transaction[]
+): Record<string, number> {
+  const result: Record<string, number> = {};
+  for (const acc of accounts) result[acc.id] = computeBalance(acc.soldeInitial, transactions, acc.id);
+  return result;
+}
+
+function monthKey(d: Date): string {
+  return `${d.getFullYear()}-${d.getMonth()}`;
+}
+
+export function isSameMonth(dateIso: string, ref: Date): boolean {
+  const d = new Date(dateIso);
+  return monthKey(d) === monthKey(ref);
+}
+
+export function computeBudgetSpent(categorieId: string, transactions: Transaction[], ref: Date = new Date()): number {
+  return transactions
+    .filter((t) => t.type === "depense" && t.categorieId === categorieId && isSameMonth(t.date, ref))
+    .reduce((s, t) => s + t.montant, 0);
+}
+
+export function computeBudgetProgress(
+  budgets: { id: string; categorieId: string; montantLimite: number; seuilAlerte: number }[],
+  transactions: Transaction[],
+  ref: Date = new Date()
+): BudgetProgress[] {
+  return budgets.map((b) => ({
+    ...b,
+    spent: computeBudgetSpent(b.categorieId, transactions, ref),
+  }));
+}
+
+export function computeCategoryBreakdown(
+  categories: Category[],
+  transactions: Transaction[],
+  ref: Date = new Date()
+): { category: Category; total: number; pct: number }[] {
+  const currentMonthDepenses = transactions.filter((t) => t.type === "depense" && isSameMonth(t.date, ref));
+  const total = currentMonthDepenses.reduce((s, t) => s + t.montant, 0);
+  const byCat = new Map<string, number>();
+  for (const t of currentMonthDepenses) {
+    const key = t.categorieId ?? "autres";
+    byCat.set(key, (byCat.get(key) ?? 0) + t.montant);
+  }
+  return categories
+    .map((c) => ({ category: c, total: byCat.get(c.id) ?? 0, pct: total ? ((byCat.get(c.id) ?? 0) / total) * 100 : 0 }))
+    .filter((row) => row.total > 0)
+    .sort((a, b) => b.total - a.total);
+}
+
+export function computeTrend(
+  accounts: { id: string; soldeInitial: number }[],
+  transactions: Transaction[],
+  monthsBack = 6,
+  ref: Date = new Date()
+): TrendPoint[] {
+  const points: TrendPoint[] = [];
+  for (let i = monthsBack - 1; i >= 0; i--) {
+    const cutoff = new Date(ref.getFullYear(), ref.getMonth() - i + 1, 0, 23, 59, 59, 999);
+    const upToCutoff = transactions.filter((t) => new Date(t.date).getTime() <= cutoff.getTime());
+    const balance = accounts.reduce((sum, acc) => sum + computeBalance(acc.soldeInitial, upToCutoff, acc.id), 0);
+    points.push({ label: MONTH_LABELS_FR[cutoff.getMonth()], balance });
+  }
+  return points;
+}
+
+export function suggestCategoryLocal(label: string, categories: Category[]): string | null {
+  const l = (label || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  if (!l) return null;
+  for (const cat of categories) {
+    if (cat.keywords.some((k) => l.includes(k))) return cat.id;
+  }
+  const fallback = categories.find((c) => c.id === "autres");
+  return fallback ? fallback.id : null;
+}
+
+export function accountBalance(account: Account): number {
+  return account.solde;
+}
+
+function fmtMRU(n: number): string {
+  return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " MRU";
+}
+
+export function computeLocalSummary(
+  categories: Category[],
+  budgets: BudgetProgress[],
+  transactions: Transaction[],
+  ref: Date = new Date()
+): string {
+  const monthDepenses = transactions.filter((t) => t.type === "depense" && isSameMonth(t.date, ref));
+  const total = monthDepenses.reduce((s, t) => s + t.montant, 0);
+  const over = budgets.filter((b) => b.montantLimite && b.spent / b.montantLimite >= 1);
+  const near = budgets.filter((b) => b.montantLimite && b.spent / b.montantLimite >= 0.8 && b.spent / b.montantLimite < 1);
+  const catName = (id: string) => categories.find((c) => c.id === id)?.nom ?? id;
+  const parts = [`Ce mois-ci, vos dépenses s'élèvent à ${fmtMRU(total)}.`];
+  if (over.length) parts.push(`Le budget ${over.map((b) => catName(b.categorieId)).join(", ")} est dépassé.`);
+  if (near.length) parts.push(`${near.map((b) => catName(b.categorieId)).join(", ")} approche du plafond mensuel.`);
+  if (!over.length && !near.length) parts.push("Tous les budgets sont sous contrôle pour l'instant.");
+  return parts.join(" ");
+}
+
+export function computeLocalAnomalies(
+  categories: Category[],
+  budgets: BudgetProgress[],
+  transactions: Transaction[],
+  ref: Date = new Date()
+): { title: string; detail: string }[] {
+  const anomalies: { title: string; detail: string }[] = [];
+  const catName = (id: string) => categories.find((c) => c.id === id)?.nom ?? id;
+  for (const b of budgets) {
+    if (b.montantLimite && b.spent > b.montantLimite) {
+      anomalies.push({
+        title: `${catName(b.categorieId)} dépasse le budget`,
+        detail: `La dépense ${catName(b.categorieId)} de ${fmtMRU(b.spent)} dépasse le plafond mensuel de ${fmtMRU(b.montantLimite)}.`,
+      });
+    }
+  }
+  const monthDepenses = transactions.filter((t) => t.type === "depense" && isSameMonth(t.date, ref));
+  const byCat = new Map<string, number[]>();
+  for (const t of monthDepenses) {
+    const key = t.categorieId ?? "autres";
+    byCat.set(key, [...(byCat.get(key) ?? []), t.montant]);
+  }
+  for (const [catId, amounts] of byCat) {
+    if (amounts.length < 2) continue;
+    const avg = amounts.reduce((s, a) => s + a, 0) / amounts.length;
+    const max = Math.max(...amounts);
+    if (max > avg * 2 && max > 2000) {
+      anomalies.push({
+        title: `Dépense ${catName(catId)} au-dessus de la moyenne`,
+        detail: `Une dépense de ${fmtMRU(max)} est ${(max / avg).toFixed(1)}x supérieure à vos dépenses ${catName(catId)} habituelles.`,
+      });
+    }
+  }
+  return anomalies.slice(0, 4);
+}
+
+export function computeLocalForecast(
+  accounts: { id: string; soldeInitial: number }[],
+  budgets: BudgetProgress[],
+  transactions: Transaction[],
+  ref: Date = new Date()
+): string {
+  const dayOfMonth = ref.getDate();
+  const daysInMonth = new Date(ref.getFullYear(), ref.getMonth() + 1, 0).getDate();
+  const globalBalance = accounts.reduce((s, acc) => s + computeBalance(acc.soldeInitial, transactions, acc.id), 0);
+  const monthDepenses = transactions
+    .filter((t) => t.type === "depense" && isSameMonth(t.date, ref))
+    .reduce((s, t) => s + t.montant, 0);
+  const dailyRate = dayOfMonth > 0 ? monthDepenses / dayOfMonth : 0;
+  const projectedRemaining = dailyRate * (daysInMonth - dayOfMonth);
+  const projectedBalance = globalBalance - projectedRemaining;
+  const overBudgets = budgets.filter((b) => b.montantLimite && b.spent / b.montantLimite >= 0.8);
+  const advice = overBudgets.length
+    ? `Réduire les dépenses restantes sur ${overBudgets.length > 1 ? "ces catégories" : "cette catégorie"} proche(s) du plafond permettrait de préserver votre solde.`
+    : "Votre rythme de dépenses actuel est soutenable pour le reste du mois.";
+  return `Au rythme actuel, vous devriez terminer le mois avec un solde global proche de ${fmtMRU(projectedBalance)}. ${advice}`;
+}

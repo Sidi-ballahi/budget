@@ -1,0 +1,132 @@
+// Cahier des charges section 5 (Modele de donnees) -> Prisma schema.
+// One extension beyond the spec: Category.keywords, used as an offline
+// fallback for category suggestion when the LLM can't be reached (section
+// 7.1 requires the app to stay fully usable offline).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AccountType {
+  banque
+  cash
+}
+
+enum CategoryType {
+  depense
+  revenu
+}
+
+enum TransactionType {
+  depense
+  revenu
+  transfert
+}
+
+enum BudgetPeriod {
+  mensuel
+}
+
+enum InsightType {
+  resume_mensuel
+  anomalie
+  prevision
+}
+
+model Account {
+  id             String   @id @default(uuid())
+  nom            String
+  type           AccountType
+  soldeInitial   Decimal  @default(0) @db.Decimal(14, 2)
+  devise         String   @default("MRU")
+  couleur        String // swatch used throughout the UI; not in the cahier's table but needed for the design
+  actif          Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  transactions        Transaction[] @relation("SourceAccount")
+  transfersIn         Transaction[] @relation("DestAccount")
+
+  @@map("accounts")
+}
+
+model Category {
+  id       String       @id @default(uuid())
+  nom      String
+  type     CategoryType
+  icone    String?
+  couleur  String
+  keywords String[]     @default([])
+  parentId String?
+  parent   Category?    @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children Category[]   @relation("CategoryHierarchy")
+
+  transactions Transaction[]
+  budget       Budget?
+
+  @@map("categories")
+}
+
+model Transaction {
+  id                 String            @id @default(uuid())
+  compteId           String
+  compte             Account           @relation("SourceAccount", fields: [compteId], references: [id], onDelete: Cascade)
+  compteDestinationId String?
+  compteDestination  Account?          @relation("DestAccount", fields: [compteDestinationId], references: [id], onDelete: SetNull)
+  type               TransactionType
+  montant            Decimal           @db.Decimal(14, 2)
+  categorieId        String?
+  categorie          Category?         @relation(fields: [categorieId], references: [id], onDelete: SetNull)
+  libelle            String?
+  date               DateTime          @default(now())
+  synced             Boolean           @default(true)
+  creeHorsLigne      Boolean           @default(false)
+  clientId           String?           @unique // dedupe key set by the offline client so a queued write can't be double-applied
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@index([compteId])
+  @@index([date])
+  @@map("transactions")
+}
+
+model Budget {
+  id             String       @id @default(uuid())
+  categorieId    String       @unique
+  categorie      Category     @relation(fields: [categorieId], references: [id], onDelete: Cascade)
+  montantLimite  Decimal      @db.Decimal(14, 2)
+  seuilAlerte    Int          @default(80) // percent
+  periode        BudgetPeriod @default(mensuel)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@map("budgets")
+}
+
+model Insight {
+  id               String      @id @default(uuid())
+  type             InsightType
+  contenu          String
+  periodeConcernee DateTime
+  dateGeneration   DateTime    @default(now())
+
+  @@map("insights")
+}
+
+// Single-row table: mono-user app, local PIN auth per section 4.1/7.2.
+model AppSettings {
+  id              Int      @id @default(1)
+  pinHash         String
+  pinSalt         String
+  accentColor     String   @default("oklch(0.72 0.14 150)")
+  aiSuggestions   Boolean  @default(true)
+  autoLockMinutes Int      @default(2)
+  updatedAt       DateTime @updatedAt
+
+  @@map("app_settings")
+}
