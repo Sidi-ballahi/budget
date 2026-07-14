@@ -54,22 +54,54 @@ export function computeBudgetProgress(
   }));
 }
 
+// Shown when a spend has no (or an unknown) category, so it is never
+// silently dropped from the breakdown while still counting in the total.
+const AUTRES_FALLBACK: Category = {
+  id: "autres",
+  nom: "Autres",
+  type: "depense",
+  couleur: "oklch(0.55 0.02 70)",
+  icone: null,
+  keywords: [],
+};
+
 export function computeCategoryBreakdown(
   categories: Category[],
   transactions: Transaction[],
   ref: Date = new Date()
-): { category: Category; total: number; pct: number }[] {
+): { category: Category; total: number; pct: number; pctEntier: number }[] {
   const currentMonthDepenses = transactions.filter((t) => t.type === "depense" && isSameMonth(t.date, ref));
   const total = currentMonthDepenses.reduce((s, t) => s + t.montant, 0);
-  const byCat = new Map<string, number>();
+  if (!total) return [];
+
+  const autres =
+    categories.find((c) => c.type === "depense" && c.nom.trim().toLowerCase() === "autres") ?? AUTRES_FALLBACK;
+  const byId = new Map<string, { category: Category; total: number }>();
   for (const t of currentMonthDepenses) {
-    const key = t.categorieId ?? "autres";
-    byCat.set(key, (byCat.get(key) ?? 0) + t.montant);
+    const category = categories.find((c) => c.id === t.categorieId) ?? autres;
+    const row = byId.get(category.id) ?? { category, total: 0 };
+    row.total += t.montant;
+    byId.set(category.id, row);
   }
-  return categories
-    .map((c) => ({ category: c, total: byCat.get(c.id) ?? 0, pct: total ? ((byCat.get(c.id) ?? 0) / total) * 100 : 0 }))
-    .filter((row) => row.total > 0)
-    .sort((a, b) => b.total - a.total);
+
+  const rows = [...byId.values()]
+    .sort((a, b) => b.total - a.total)
+    .map((r) => ({ ...r, pct: (r.total / total) * 100 }));
+
+  // Largest-remainder rounding: the displayed integers always sum to 100,
+  // instead of each pct being rounded independently (76+9+7+4+3+2 = 101).
+  const pctEntiers = rows.map((r) => Math.floor(r.pct));
+  let rest = 100 - pctEntiers.reduce((s, n) => s + n, 0);
+  const byRemainder = rows
+    .map((r, i) => ({ i, frac: r.pct - Math.floor(r.pct) }))
+    .sort((a, b) => b.frac - a.frac);
+  for (const { i } of byRemainder) {
+    if (rest <= 0) break;
+    pctEntiers[i] += 1;
+    rest -= 1;
+  }
+
+  return rows.map((r, i) => ({ ...r, pctEntier: pctEntiers[i] }));
 }
 
 export function computeTrend(

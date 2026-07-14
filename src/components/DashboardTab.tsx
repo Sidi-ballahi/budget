@@ -217,7 +217,7 @@ export function DashboardTab({
             <div key={b.category.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{ width: 8, height: 8, borderRadius: 2, background: b.category.couleur, flexShrink: 0 }} />
               <div style={{ fontSize: 12, color: colors.textSecondary, flex: 1 }}>{b.category.nom}</div>
-              <div style={{ fontSize: 12, color: colors.textMuted }}>{Math.round(b.pct)}%</div>
+              <div style={{ fontSize: 12, color: colors.textMuted }}>{b.pctEntier}%</div>
             </div>
           ))}
         </div>

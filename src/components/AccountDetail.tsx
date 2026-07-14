@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { colors } from "@/lib/theme";
 import { fmtMoney, fmtNum } from "@/lib/present";
 import { computeReleve } from "@/lib/finance";
+import { downloadRelevePdf } from "@/lib/releve-pdf";
 import { TransactionList } from "./TransactionRow";
 import type { Account, Category, Transaction } from "@/lib/types";
 
@@ -119,6 +120,26 @@ export function AccountDetail({
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: colors.textSecondary }}>Solde de clôture</div>
           <div style={{ fontSize: 16, fontWeight: 800, color: colors.textPrimary }}>{fmtMoney(releve.soldeCloture, false)}</div>
+        </div>
+        <div
+          onClick={() => downloadRelevePdf(account, releve, categories, period.year, period.month)}
+          style={{
+            marginTop: 12,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 7,
+            padding: 12,
+            borderRadius: 12,
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: "pointer",
+            background: colors.accentGold,
+            color: colors.neutralIcon,
+          }}
+        >
+          <Download size={15} />
+          Télécharger le relevé PDF
         </div>
       </div>
 
