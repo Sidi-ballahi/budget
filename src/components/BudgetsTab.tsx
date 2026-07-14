@@ -1,25 +1,36 @@
 "use client";
 
-import { Plus, Tag } from "lucide-react";
+import { Plus, Tag, Target } from "lucide-react";
 import { colors } from "@/lib/theme";
 import { fmtNum } from "@/lib/present";
-import type { BudgetProgress, Category } from "@/lib/types";
+import { computeProjetProgress } from "@/lib/finance";
+import { ProjetCard } from "./ProjetCard";
+import type { BudgetProgress, Category, Projet, ProjetContribution } from "@/lib/types";
 
 export function BudgetsTab({
   budgets,
   categories,
+  projets,
+  contributions,
   onAddBudget,
+  onAddProjet,
+  onOpenProjet,
 }: {
   budgets: BudgetProgress[];
   categories: Category[];
+  projets: Projet[];
+  contributions: ProjetContribution[];
   onAddBudget: () => void;
+  onAddProjet: () => void;
+  onOpenProjet: (id: string) => void;
 }) {
+  const actifs = projets.filter((p) => p.actif);
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 }}>
         <div>
           <div style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary, marginBottom: 6 }}>Budgets</div>
-          <div style={{ fontSize: 12.5, color: colors.textFaint }}>Plafonds mensuels par catégorie</div>
+          <div style={{ fontSize: 12.5, color: colors.textFaint }}>Projets à financer et plafonds mensuels</div>
         </div>
         <div
           onClick={onAddBudget}
@@ -39,6 +50,38 @@ export function BudgetsTab({
           <Plus size={16} />
         </div>
       </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>Projets à financer</div>
+        <div
+          onClick={onAddProjet}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
+            fontSize: 11.5,
+            fontWeight: 700,
+            color: colors.accentGreen,
+            cursor: "pointer",
+          }}
+        >
+          <Target size={13} />
+          Nouveau projet
+        </div>
+      </div>
+      {actifs.length === 0 ? (
+        <div style={{ fontSize: 12.5, color: colors.textFaint, marginBottom: 20 }}>
+          Aucun projet. Créez un objectif (terrain, voiture…) et versez-y votre épargne petit à petit.
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+          {actifs.map((p) => (
+            <ProjetCard key={p.id} progress={computeProjetProgress(p, contributions)} onOpen={() => onOpenProjet(p.id)} />
+          ))}
+        </div>
+      )}
+
+      <div style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary, marginBottom: 10 }}>Plafonds mensuels</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {budgets.map((b) => {
           const cat = categories.find((c) => c.id === b.categorieId);

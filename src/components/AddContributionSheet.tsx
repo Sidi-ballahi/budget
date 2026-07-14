@@ -1,0 +1,157 @@
+"use client";
+
+import { useState } from "react";
+import { ArrowDownLeft, ArrowUpRight, X } from "lucide-react";
+import { colors } from "@/lib/theme";
+import type { ContributionSens, NewContributionInput, Projet } from "@/lib/types";
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  boxSizing: "border-box",
+  background: colors.card,
+  border: `1px solid ${colors.white8}`,
+  borderRadius: 12,
+  padding: "12px 14px",
+  color: colors.textSecondary,
+  fontSize: 14,
+  fontFamily: "inherit",
+  marginBottom: 18,
+};
+
+export function AddContributionSheet({
+  projet,
+  initialSens,
+  onClose,
+  onConfirm,
+}: {
+  projet: Projet;
+  initialSens: ContributionSens;
+  onClose: () => void;
+  onConfirm: (input: NewContributionInput) => Promise<void> | void;
+}) {
+  const [sens, setSens] = useState<ContributionSens>(initialSens);
+  const [montant, setMontant] = useState("");
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const canSave = parseFloat(montant) > 0 && !saving;
+
+  async function save() {
+    if (!canSave) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await onConfirm({
+        projetId: projet.id,
+        sens,
+        montant: parseFloat(montant),
+        note: note.trim() || null,
+        date: new Date().toISOString(),
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Impossible d'enregistrer");
+      setSaving(false);
+    }
+  }
+
+  return (
+    <>
+      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "oklch(0 0 0 / 0.5)", zIndex: 20 }} />
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: colors.sheetBg,
+          borderRadius: "26px 26px 0 0",
+          zIndex: 21,
+          boxSizing: "border-box",
+          padding: "14px 18px calc(env(safe-area-inset-bottom, 0px) + 28px)",
+          boxShadow: "0 -20px 40px oklch(0 0 0 / 0.4)",
+        }}
+      >
+        <div style={{ width: 36, height: 4, borderRadius: 100, background: colors.white15, margin: "0 auto 16px" }} />
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary }}>Épargne — {projet.nom}</div>
+          <div
+            onClick={onClose}
+            style={{ width: 28, height: 28, borderRadius: "50%", background: colors.white8, display: "flex", alignItems: "center", justifyContent: "center", color: colors.textMuted, cursor: "pointer" }}
+          >
+            <X size={14} />
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+          {(
+            [
+              { s: "verse" as ContributionSens, label: "Verser", Icon: ArrowUpRight, accent: colors.accentGreen },
+              { s: "retire" as ContributionSens, label: "Retirer", Icon: ArrowDownLeft, accent: colors.accentGold },
+            ]
+          ).map(({ s, label, Icon, accent }) => (
+            <div
+              key={s}
+              onClick={() => setSens(s)}
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                padding: "11px 0",
+                borderRadius: 12,
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+                background: sens === s ? colors.white8 : colors.white4,
+                color: sens === s ? colors.textPrimary : colors.textFaint,
+                border: `1px solid ${sens === s ? accent : "transparent"}`,
+              }}
+            >
+              <Icon size={15} color={accent} />
+              {label}
+            </div>
+          ))}
+        </div>
+
+        <div style={{ fontSize: 11.5, color: colors.textFaint, marginBottom: 18, lineHeight: 1.5 }}>
+          {sens === "verse"
+            ? "L'argent reste sur vos comptes mais est réservé pour ce projet."
+            : "Libère une partie de l'épargne réservée à ce projet."}
+        </div>
+
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: colors.textMuted, marginBottom: 8 }}>MONTANT (MRU)</div>
+        <input
+          value={montant}
+          onChange={(e) => setMontant(e.target.value.replace(/[^0-9.]/g, ""))}
+          placeholder="0"
+          inputMode="decimal"
+          style={inputStyle}
+        />
+
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: colors.textMuted, marginBottom: 8 }}>NOTE (OPTIONNEL)</div>
+        <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ex : prime, économies du mois…" style={{ ...inputStyle, marginBottom: 22 }} />
+
+        {error && <div style={{ fontSize: 12, color: colors.accentRed, marginBottom: 12 }}>{error}</div>}
+
+        <div
+          onClick={save}
+          style={{
+            textAlign: "center",
+            padding: 14,
+            borderRadius: 14,
+            fontSize: 14,
+            fontWeight: 700,
+            cursor: canSave ? "pointer" : "default",
+            background: canSave ? (sens === "verse" ? colors.accentGreen : colors.accentGold) : colors.white8,
+            color: canSave ? colors.neutralIcon : colors.textFaint,
+          }}
+        >
+          {saving ? "Enregistrement…" : sens === "verse" ? "Verser" : "Retirer"}
+        </div>
+      </div>
+    </>
+  );
+}

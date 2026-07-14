@@ -1,9 +1,17 @@
 "use client";
 
+import { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { colors } from "@/lib/theme";
-import { fmtMoney } from "@/lib/present";
+import { fmtMoney, fmtNum } from "@/lib/present";
+import { computeReleve } from "@/lib/finance";
 import { TransactionList } from "./TransactionRow";
 import type { Account, Category, Transaction } from "@/lib/types";
+
+const MONTHS_FR = [
+  "janvier", "février", "mars", "avril", "mai", "juin",
+  "juillet", "août", "septembre", "octobre", "novembre", "décembre",
+];
 
 export function AccountDetail({
   account,
@@ -18,7 +26,32 @@ export function AccountDetail({
   transactions: Transaction[];
   onClose: () => void;
 }) {
-  const accountTx = transactions.filter((t) => t.compteId === account.id || t.compteDestinationId === account.id);
+  const now = new Date();
+  const [period, setPeriod] = useState({ year: now.getFullYear(), month: now.getMonth() });
+  const isCurrentMonth = period.year === now.getFullYear() && period.month === now.getMonth();
+
+  function shiftMonth(delta: number) {
+    setPeriod(({ year, month }) => {
+      const d = new Date(year, month + delta, 1);
+      return { year: d.getFullYear(), month: d.getMonth() };
+    });
+  }
+
+  const releve = computeReleve(account, transactions, period.year, period.month);
+
+  const navBtn: React.CSSProperties = {
+    width: 28,
+    height: 28,
+    borderRadius: "50%",
+    background: colors.white8,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: colors.textSecondary,
+    cursor: "pointer",
+    flexShrink: 0,
+  };
+
   return (
     <div
       style={{
@@ -50,11 +83,52 @@ export function AccountDetail({
         <div style={{ fontSize: 12.5, color: colors.textMuted, marginBottom: 6 }}>Solde du compte</div>
         <div style={{ fontSize: 26, fontWeight: 800, color: colors.textPrimary }}>{fmtMoney(account.solde, false).replace("-", "")}</div>
       </div>
-      <div style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary, marginBottom: 10 }}>Historique</div>
-      {accountTx.length ? (
-        <TransactionList transactions={accountTx} categories={categories} accounts={accounts} />
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>Relevé mensuel</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div onClick={() => shiftMonth(-1)} style={navBtn}>
+            <ChevronLeft size={15} />
+          </div>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: colors.textSecondary, minWidth: 108, textAlign: "center" }}>
+            {MONTHS_FR[period.month]} {period.year}
+          </div>
+          <div
+            onClick={() => !isCurrentMonth && shiftMonth(1)}
+            style={{ ...navBtn, color: isCurrentMonth ? colors.textFaint : colors.textSecondary, cursor: isCurrentMonth ? "default" : "pointer" }}
+          >
+            <ChevronRight size={15} />
+          </div>
+        </div>
+      </div>
+
+      <div style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 20, padding: 16, marginBottom: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: colors.textMuted, padding: "6px 0" }}>
+          <div>Solde d&apos;ouverture</div>
+          <div style={{ color: colors.textSecondary, fontWeight: 600 }}>{fmtMoney(releve.soldeOuverture, false)}</div>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: colors.textMuted, padding: "6px 0" }}>
+          <div>Entrées</div>
+          <div style={{ color: colors.accentGreen, fontWeight: 600 }}>+{fmtNum(releve.entrees)} MRU</div>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: colors.textMuted, padding: "6px 0" }}>
+          <div>Sorties</div>
+          <div style={{ color: colors.accentRed, fontWeight: 600 }}>-{fmtNum(releve.sorties)} MRU</div>
+        </div>
+        <div style={{ height: 1, background: colors.white8, margin: "8px 0" }} />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: colors.textSecondary }}>Solde de clôture</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: colors.textPrimary }}>{fmtMoney(releve.soldeCloture, false)}</div>
+        </div>
+      </div>
+
+      <div style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary, marginBottom: 10 }}>
+        Transactions de {MONTHS_FR[period.month]}
+      </div>
+      {releve.transactions.length ? (
+        <TransactionList transactions={releve.transactions} categories={categories} accounts={accounts} />
       ) : (
-        <div style={{ fontSize: 12.5, color: colors.textFaint }}>Aucune transaction sur ce compte.</div>
+        <div style={{ fontSize: 12.5, color: colors.textFaint }}>Aucune transaction ce mois-ci sur ce compte.</div>
       )}
     </div>
   );

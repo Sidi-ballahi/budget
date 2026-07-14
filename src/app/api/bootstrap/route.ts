@@ -1,11 +1,21 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { serializeAccount, serializeAmi, serializeBudget, serializeCategory, serializeEcheance, serializePret, serializeTransaction } from "@/lib/serialize";
+import {
+  serializeAccount,
+  serializeAmi,
+  serializeBudget,
+  serializeCategory,
+  serializeContribution,
+  serializeEcheance,
+  serializePret,
+  serializeProjet,
+  serializeTransaction,
+} from "@/lib/serialize";
 import { computeBudgetProgress, computeTrend } from "@/lib/finance";
 import type { Bootstrap } from "@/lib/types";
 
 export async function GET() {
-  const [accountRows, categoryRows, budgetRows, transactionRows, echeanceRows, amiRows, pretRows, settingsRow] = await Promise.all([
+  const [accountRows, categoryRows, budgetRows, transactionRows, echeanceRows, amiRows, pretRows, projetRows, contributionRows, settingsRow] = await Promise.all([
     prisma.account.findMany({ where: { actif: true }, orderBy: { createdAt: "asc" } }),
     prisma.category.findMany({ orderBy: { nom: "asc" } }),
     prisma.budget.findMany(),
@@ -13,6 +23,8 @@ export async function GET() {
     prisma.echeance.findMany({ where: { actif: true }, orderBy: { prochaineDate: "asc" } }),
     prisma.ami.findMany({ orderBy: { createdAt: "asc" } }),
     prisma.pretMouvement.findMany({ orderBy: { date: "desc" } }),
+    prisma.projet.findMany({ where: { actif: true }, orderBy: { createdAt: "asc" } }),
+    prisma.projetContribution.findMany({ orderBy: { date: "desc" } }),
     prisma.appSettings.findUnique({ where: { id: 1 } }),
   ]);
 
@@ -30,6 +42,8 @@ export async function GET() {
     echeances: echeanceRows.map(serializeEcheance),
     amis: amiRows.map(serializeAmi),
     prets: pretRows.map(serializePret),
+    projets: projetRows.map(serializeProjet),
+    contributions: contributionRows.map(serializeContribution),
     trend,
     settings: settingsRow
       ? {

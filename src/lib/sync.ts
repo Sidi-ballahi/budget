@@ -9,10 +9,14 @@ import type {
   NewAmiInput,
   NewBudgetInput,
   NewCategoryInput,
+  NewContributionInput,
   NewEcheanceInput,
   NewPretInput,
+  NewProjetInput,
   NewTransactionInput,
   PretMouvement,
+  Projet,
+  ProjetContribution,
   Transaction,
 } from "./types";
 
@@ -26,7 +30,7 @@ export async function hydrateFromServer(): Promise<Bootstrap | null> {
     if (!res.ok) return null;
     const data: Bootstrap = await res.json();
 
-    await db.transaction("rw", [db.accounts, db.categories, db.budgets, db.echeances, db.amis, db.prets, db.settings], async () => {
+    await db.transaction("rw", [db.accounts, db.categories, db.budgets, db.echeances, db.amis, db.prets, db.projets, db.contributions, db.settings], async () => {
       await db.accounts.bulkPut(data.accounts);
       await db.categories.bulkPut(data.categories);
       const budgets: LocalBudget[] = data.budgets.map((b) => ({
@@ -43,6 +47,10 @@ export async function hydrateFromServer(): Promise<Bootstrap | null> {
       await db.amis.bulkPut(data.amis ?? []);
       await db.prets.clear();
       await db.prets.bulkPut(data.prets ?? []);
+      await db.projets.clear();
+      await db.projets.bulkPut(data.projets ?? []);
+      await db.contributions.clear();
+      await db.contributions.bulkPut(data.contributions ?? []);
       await db.settings.put({ id: 1, ...data.settings });
     });
 
@@ -172,6 +180,33 @@ export async function addPret(input: NewPretInput): Promise<PretMouvement> {
   if (transaction) await db.transactions.put(transaction);
   await db.prets.put(pret);
   return pret;
+}
+
+export async function addProjet(input: NewProjetInput): Promise<Projet> {
+  const res = await fetch("/api/projets", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error("Impossible de créer le projet");
+  const { projet } = (await res.json()) as { projet: Projet };
+  await db.projets.put(projet);
+  return projet;
+}
+
+export async function addContribution(input: NewContributionInput): Promise<ProjetContribution> {
+  const res = await fetch("/api/projets/contributions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(typeof body?.error === "string" ? body.error : "Impossible d'enregistrer le versement");
+  }
+  const { contribution } = (await res.json()) as { contribution: ProjetContribution };
+  await db.contributions.put(contribution);
+  return contribution;
 }
 
 let flushing = false;

@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
-import type { Account, Ami, Category, Echeance, PretMouvement, Settings, Transaction } from "./types";
+import type { Account, Ami, Category, Echeance, PretMouvement, Projet, ProjetContribution, Settings, Transaction } from "./types";
 
 export interface LocalBudget {
   id: string;
@@ -20,6 +20,8 @@ class DepensesDB extends Dexie {
   echeances!: EntityTable<Echeance, "id">;
   amis!: EntityTable<Ami, "id">;
   prets!: EntityTable<PretMouvement, "id">;
+  projets!: EntityTable<Projet, "id">;
+  contributions!: EntityTable<ProjetContribution, "id">;
   settings!: EntityTable<LocalSettings, "id">;
 
   constructor() {
@@ -35,6 +37,10 @@ class DepensesDB extends Dexie {
       echeances: "id, prochaineDate",
       amis: "id",
       prets: "id, amiId, date",
+    });
+    this.version(3).stores({
+      projets: "id",
+      contributions: "id, projetId, date",
     });
   }
 }

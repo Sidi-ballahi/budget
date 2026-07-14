@@ -75,3 +75,22 @@ export const newPretSchema = z.object({
 });
 
 export type NewPretParsed = z.infer<typeof newPretSchema>;
+
+export const newProjetSchema = z.object({
+  nom: z.string().min(1).max(60),
+  couleur: z.string().min(1),
+  montantCible: z.number().positive(),
+  dateCible: z.string().min(1).nullable().optional(),
+});
+
+export type NewProjetParsed = z.infer<typeof newProjetSchema>;
+
+export const newContributionSchema = z.object({
+  projetId: z.string().min(1),
+  sens: z.enum(["verse", "retire"]),
+  montant: z.number().positive(),
+  note: z.string().max(200).nullable().optional(),
+  date: z.string().min(1),
+});
+
+export type NewContributionParsed = z.infer<typeof newContributionSchema>;

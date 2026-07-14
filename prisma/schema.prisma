@@ -53,6 +53,11 @@ enum PretDirection {
   recu
 }
 
+enum ContributionSens {
+  verse
+  retire
+}
+
 model Account {
   id             String   @id @default(uuid())
   nom            String
@@ -188,6 +193,38 @@ model Insight {
   dateGeneration   DateTime    @default(now())
 
   @@map("insights")
+}
+
+// Savings goal for a big purchase/project. Contributions are virtual
+// allocations (the money stays on the accounts): epargne = verse - retire,
+// and the dashboard shows global balance minus what is reserved here.
+model Projet {
+  id           String    @id @default(uuid())
+  nom          String
+  couleur      String
+  montantCible Decimal   @db.Decimal(14, 2)
+  dateCible    DateTime?
+  actif        Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  contributions ProjetContribution[]
+
+  @@map("projets")
+}
+
+model ProjetContribution {
+  id        String           @id @default(uuid())
+  projetId  String
+  projet    Projet           @relation(fields: [projetId], references: [id], onDelete: Cascade)
+  sens      ContributionSens @default(verse)
+  montant   Decimal          @db.Decimal(14, 2)
+  note      String?
+  date      DateTime         @default(now())
+  createdAt DateTime         @default(now())
+
+  @@index([projetId])
+  @@map("projet_contributions")
 }
 
 // Single-row table: mono-user app, local PIN auth per section 4.1/7.2.

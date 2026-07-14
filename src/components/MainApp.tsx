@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { colors } from "@/lib/theme";
-import { addAccount, addAmi, addBudget, addEcheance, addPret, addTransaction, payerEcheance } from "@/lib/sync";
+import { addAccount, addAmi, addBudget, addContribution, addEcheance, addPret, addProjet, addTransaction, payerEcheance } from "@/lib/sync";
 import { DashboardTab } from "./DashboardTab";
 import { AccountsTab } from "./AccountsTab";
 import { BudgetsTab } from "./BudgetsTab";
@@ -11,19 +11,22 @@ import { FriendsTab } from "./FriendsTab";
 import { InsightsTab } from "./InsightsTab";
 import { AccountDetail } from "./AccountDetail";
 import { AmiDetail } from "./AmiDetail";
+import { ProjetDetail } from "./ProjetDetail";
 import { AddTransactionSheet } from "./AddTransactionSheet";
 import { AddAccountSheet } from "./AddAccountSheet";
 import { AddBudgetSheet } from "./AddBudgetSheet";
 import { AddEcheanceSheet } from "./AddEcheanceSheet";
 import { AddAmiSheet } from "./AddAmiSheet";
 import { AddPretSheet } from "./AddPretSheet";
+import { AddProjetSheet } from "./AddProjetSheet";
+import { AddContributionSheet } from "./AddContributionSheet";
 import { TabBar } from "./TabBar";
 import { Toast } from "./Toast";
 import type { AppData } from "@/hooks/useAppData";
-import type { PretDirection, Tab } from "@/lib/types";
+import type { ContributionSens, PretDirection, Tab } from "@/lib/types";
 
 export function MainApp({ data }: { data: AppData }) {
-  const { accounts, categories, budgets, transactions, echeances, amis, prets, trend } = data;
+  const { accounts, categories, budgets, transactions, echeances, amis, prets, projets, contributions, trend } = data;
   const [tab, setTab] = useState<Tab>("dashboard");
   const [openAccountId, setOpenAccountId] = useState<string | null>(null);
   const [openAmiId, setOpenAmiId] = useState<string | null>(null);
@@ -33,6 +36,9 @@ export function MainApp({ data }: { data: AppData }) {
   const [addEcheanceOpen, setAddEcheanceOpen] = useState(false);
   const [addAmiOpen, setAddAmiOpen] = useState(false);
   const [addPretDirection, setAddPretDirection] = useState<PretDirection | null>(null);
+  const [openProjetId, setOpenProjetId] = useState<string | null>(null);
+  const [addProjetOpen, setAddProjetOpen] = useState(false);
+  const [addContributionSens, setAddContributionSens] = useState<ContributionSens | null>(null);
   const [payingId, setPayingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -40,6 +46,7 @@ export function MainApp({ data }: { data: AppData }) {
 
   const openAccount = accounts.find((a) => a.id === openAccountId);
   const openAmi = amis.find((a) => a.id === openAmiId);
+  const openProjet = projets.find((p) => p.id === openProjetId);
 
   function selectTab(t: Tab) {
     setTab(t);
@@ -83,9 +90,13 @@ export function MainApp({ data }: { data: AppData }) {
             categories={categories}
             budgets={budgets}
             transactions={transactions}
+            echeances={echeances}
+            projets={projets}
+            contributions={contributions}
             trend={trend}
             onOpenAccount={setOpenAccountId}
             onGoToBudgets={() => selectTab("budgets")}
+            onGoToPlanned={() => selectTab("planned")}
           />
         )}
         {tab === "accounts" && (
@@ -97,7 +108,17 @@ export function MainApp({ data }: { data: AppData }) {
             onAddAccount={() => setAddAccountOpen(true)}
           />
         )}
-        {tab === "budgets" && <BudgetsTab budgets={budgets} categories={categories} onAddBudget={() => setAddBudgetOpen(true)} />}
+        {tab === "budgets" && (
+          <BudgetsTab
+            budgets={budgets}
+            categories={categories}
+            projets={projets}
+            contributions={contributions}
+            onAddBudget={() => setAddBudgetOpen(true)}
+            onAddProjet={() => setAddProjetOpen(true)}
+            onOpenProjet={setOpenProjetId}
+          />
+        )}
         {tab === "planned" && (
           <PlannedTab
             echeances={echeances}
@@ -125,6 +146,15 @@ export function MainApp({ data }: { data: AppData }) {
           categories={categories}
           transactions={transactions}
           onClose={() => setOpenAccountId(null)}
+        />
+      )}
+
+      {openProjet && (
+        <ProjetDetail
+          projet={openProjet}
+          contributions={contributions}
+          onClose={() => setOpenProjetId(null)}
+          onAddContribution={(sens) => setAddContributionSens(sens)}
         />
       )}
 
@@ -195,6 +225,31 @@ export function MainApp({ data }: { data: AppData }) {
             setAddAmiOpen(false);
             setOpenAmiId(ami.id);
             showToast("Ami ajouté");
+          }}
+        />
+      )}
+
+      {addProjetOpen && (
+        <AddProjetSheet
+          onClose={() => setAddProjetOpen(false)}
+          onConfirm={async (input) => {
+            const projet = await addProjet(input);
+            setAddProjetOpen(false);
+            setOpenProjetId(projet.id);
+            showToast("Projet créé");
+          }}
+        />
+      )}
+
+      {openProjet && addContributionSens && (
+        <AddContributionSheet
+          projet={openProjet}
+          initialSens={addContributionSens}
+          onClose={() => setAddContributionSens(null)}
+          onConfirm={async (input) => {
+            await addContribution(input);
+            setAddContributionSens(null);
+            showToast(input.sens === "verse" ? "Versement enregistré" : "Retrait enregistré");
           }}
         />
       )}

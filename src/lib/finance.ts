@@ -1,4 +1,4 @@
-import type { Account, BudgetProgress, Category, PretMouvement, Transaction, TrendPoint } from "./types";
+import type { Account, BudgetProgress, Category, PretMouvement, Projet, ProjetContribution, Transaction, TrendPoint } from "./types";
 
 const MONTH_LABELS_FR = [
   "Jan", "Fev", "Mar", "Avr", "Mai", "Jun",
@@ -100,6 +100,85 @@ export function suggestCategoryLocal(label: string, categories: Category[]): str
 
 export function accountBalance(account: Account): number {
   return account.solde;
+}
+
+export interface ReleveMensuel {
+  soldeOuverture: number;
+  entrees: number;
+  sorties: number;
+  soldeCloture: number;
+  transactions: Transaction[];
+}
+
+// Monthly account statement: opening balance (everything before the 1st),
+// the month's in/out flows on that account, and the closing balance.
+export function computeReleve(
+  account: { id: string; soldeInitial: number },
+  transactions: Transaction[],
+  year: number,
+  month: number
+): ReleveMensuel {
+  const start = new Date(year, month, 1).getTime();
+  const end = new Date(year, month + 1, 1).getTime();
+  const before = transactions.filter((t) => new Date(t.date).getTime() < start);
+  const during = transactions.filter((t) => {
+    const ts = new Date(t.date).getTime();
+    return ts >= start && ts < end;
+  });
+  const soldeOuverture = computeBalance(account.soldeInitial, before, account.id);
+  let entrees = 0;
+  let sorties = 0;
+  const monthTx: Transaction[] = [];
+  for (const t of during) {
+    const effect = transactionEffect(t, account.id);
+    if (effect === 0) continue;
+    if (effect > 0) entrees += effect;
+    else sorties += -effect;
+    monthTx.push(t);
+  }
+  return { soldeOuverture, entrees, sorties, soldeCloture: soldeOuverture + entrees - sorties, transactions: monthTx };
+}
+
+export function computeProjetEpargne(projetId: string, contributions: ProjetContribution[]): number {
+  return contributions.reduce((sum, c) => {
+    if (c.projetId !== projetId) return sum;
+    return sum + (c.sens === "verse" ? c.montant : -c.montant);
+  }, 0);
+}
+
+export interface ProjetProgress {
+  projet: Projet;
+  epargne: number;
+  reste: number;
+  pct: number;
+  moisRestants: number | null; // null when no target date
+  mensualiteRequise: number | null; // amount to save per month to hit the date
+}
+
+export function computeProjetProgress(
+  projet: Projet,
+  contributions: ProjetContribution[],
+  ref: Date = new Date()
+): ProjetProgress {
+  const epargne = computeProjetEpargne(projet.id, contributions);
+  const reste = Math.max(0, projet.montantCible - epargne);
+  const pct = projet.montantCible ? Math.min(100, (epargne / projet.montantCible) * 100) : 0;
+  let moisRestants: number | null = null;
+  let mensualiteRequise: number | null = null;
+  if (projet.dateCible) {
+    const cible = new Date(projet.dateCible);
+    const months =
+      (cible.getFullYear() - ref.getFullYear()) * 12 + (cible.getMonth() - ref.getMonth());
+    moisRestants = Math.max(0, months);
+    mensualiteRequise = reste > 0 ? reste / Math.max(1, moisRestants) : 0;
+  }
+  return { projet, epargne, reste, pct, moisRestants, mensualiteRequise };
+}
+
+export function totalReserveProjets(projets: Projet[], contributions: ProjetContribution[]): number {
+  return projets
+    .filter((p) => p.actif)
+    .reduce((sum, p) => sum + Math.max(0, computeProjetEpargne(p.id, contributions)), 0);
 }
 
 // Positive = the friend owes me, negative = I owe the friend.

@@ -3,6 +3,7 @@ export type TransactionType = "depense" | "revenu" | "transfert";
 export type CategoryType = "depense" | "revenu";
 export type Recurrence = "ponctuel" | "hebdomadaire" | "mensuel" | "annuel";
 export type PretDirection = "donne" | "recu";
+export type ContributionSens = "verse" | "retire";
 export type Tab = "dashboard" | "accounts" | "budgets" | "planned" | "friends" | "insights";
 
 export interface Account {
@@ -76,6 +77,24 @@ export interface PretMouvement {
   transactionId: string | null;
 }
 
+export interface Projet {
+  id: string;
+  nom: string;
+  couleur: string;
+  montantCible: number;
+  dateCible: string | null; // ISO
+  actif: boolean;
+}
+
+export interface ProjetContribution {
+  id: string;
+  projetId: string;
+  sens: ContributionSens;
+  montant: number;
+  note: string | null;
+  date: string; // ISO
+}
+
 export interface Settings {
   accentColor: string;
   aiSuggestions: boolean;
@@ -105,6 +124,8 @@ export interface Bootstrap {
   echeances: Echeance[];
   amis: Ami[];
   prets: PretMouvement[];
+  projets: Projet[];
+  contributions: ProjetContribution[];
   settings: Settings;
   trend: TrendPoint[];
 }
@@ -155,6 +176,21 @@ export interface NewEcheanceInput {
 export interface NewAmiInput {
   nom: string;
   couleur: string;
+}
+
+export interface NewProjetInput {
+  nom: string;
+  couleur: string;
+  montantCible: number;
+  dateCible?: string | null;
+}
+
+export interface NewContributionInput {
+  projetId: string;
+  sens: ContributionSens;
+  montant: number;
+  note?: string | null;
+  date: string;
 }
 
 export interface NewPretInput {

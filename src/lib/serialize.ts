@@ -6,8 +6,20 @@ import type {
   Echeance as PEcheance,
   Ami as PAmi,
   PretMouvement as PPretMouvement,
+  Projet as PProjet,
+  ProjetContribution as PProjetContribution,
 } from "@/generated/prisma/client";
-import type { Account, Category, Transaction, BudgetProgress, Echeance, Ami, PretMouvement } from "./types";
+import type {
+  Account,
+  Category,
+  Transaction,
+  BudgetProgress,
+  Echeance,
+  Ami,
+  PretMouvement,
+  Projet,
+  ProjetContribution,
+} from "./types";
 import { computeBalance } from "./finance";
 
 function dec(x: { toNumber: () => number } | number): number {
@@ -83,6 +95,28 @@ export function serializeAmi(row: PAmi): Ami {
     id: row.id,
     nom: row.nom,
     couleur: row.couleur,
+  };
+}
+
+export function serializeProjet(row: PProjet): Projet {
+  return {
+    id: row.id,
+    nom: row.nom,
+    couleur: row.couleur,
+    montantCible: dec(row.montantCible),
+    dateCible: row.dateCible ? row.dateCible.toISOString() : null,
+    actif: row.actif,
+  };
+}
+
+export function serializeContribution(row: PProjetContribution): ProjetContribution {
+  return {
+    id: row.id,
+    projetId: row.projetId,
+    sens: row.sens,
+    montant: dec(row.montant),
+    note: row.note,
+    date: row.date.toISOString(),
   };
 }
 
