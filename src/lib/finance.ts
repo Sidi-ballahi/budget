@@ -56,11 +56,13 @@ export function computeBudgetProgress(
 
 // Shown when a spend has no (or an unknown) category, so it is never
 // silently dropped from the breakdown while still counting in the total.
-const AUTRES_FALLBACK: Category = {
-  id: "autres",
-  nom: "Autres",
+// Distinct id/name from a user-made "Autres" category: this bucket isn't
+// one of the user's own categories, it's leftover spend to sort later.
+const NON_CATEGORISE: Category = {
+  id: "__non_categorise__",
+  nom: "Non catégorisé",
   type: "depense",
-  couleur: "oklch(0.55 0.02 70)",
+  couleur: "oklch(0.5 0.01 70)",
   icone: null,
   keywords: [],
 };
@@ -74,11 +76,9 @@ export function computeCategoryBreakdown(
   const total = currentMonthDepenses.reduce((s, t) => s + t.montant, 0);
   if (!total) return [];
 
-  const autres =
-    categories.find((c) => c.type === "depense" && c.nom.trim().toLowerCase() === "autres") ?? AUTRES_FALLBACK;
   const byId = new Map<string, { category: Category; total: number }>();
   for (const t of currentMonthDepenses) {
-    const category = categories.find((c) => c.id === t.categorieId) ?? autres;
+    const category = categories.find((c) => c.id === t.categorieId) ?? NON_CATEGORISE;
     const row = byId.get(category.id) ?? { category, total: 0 };
     row.total += t.montant;
     byId.set(category.id, row);
