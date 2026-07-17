@@ -21,6 +21,7 @@ export function ProjetCard({ progress, onOpen }: { progress: ProjetProgress; onO
   return (
     <div
       onClick={onOpen}
+      className={onOpen ? "tap" : undefined}
       style={{
         background: colors.card,
         border: `1px solid ${colors.cardBorder}`,
@@ -45,6 +46,7 @@ export function ProjetCard({ progress, onOpen }: { progress: ProjetProgress; onO
             borderRadius: 100,
             width: `${Math.min(100, Math.round(pct))}%`,
             background: done ? colors.accentGreen : projet.couleur,
+            transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease",
           }}
         />
       </div>

@@ -25,6 +25,7 @@ export function AccountsTab({
         <div style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary }}>Comptes</div>
         <div
           onClick={onAddAccount}
+          className="tap"
           style={{
             width: 30,
             height: 30,
@@ -45,6 +46,7 @@ export function AccountsTab({
           <div
             key={acc.id}
             onClick={() => onOpenAccount(acc.id)}
+            className="tap"
             style={{
               display: "flex",
               alignItems: "center",

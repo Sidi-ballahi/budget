@@ -50,7 +50,7 @@ export function MainApp({ data }: { data: AppData }) {
 
   function selectTab(t: Tab) {
     setTab(t);
-    scrollRef.current?.scrollTo({ top: 0 });
+    scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function showToast(message: string) {
@@ -84,6 +84,7 @@ export function MainApp({ data }: { data: AppData }) {
       }}
     >
       <div ref={scrollRef} style={{ flex: 1, overflow: "auto", padding: `calc(env(safe-area-inset-top, 0px) + 24px) 18px 100px` }}>
+        <div key={tab} style={{ animation: "tabFadeIn 0.22s ease" }}>
         {tab === "dashboard" && (
           <DashboardTab
             accounts={accounts}
@@ -135,6 +136,7 @@ export function MainApp({ data }: { data: AppData }) {
         {tab === "insights" && (
           <InsightsTab accounts={accounts} categories={categories} budgets={budgets} transactions={transactions} />
         )}
+        </div>
       </div>
 
       <TabBar tab={tab} onTab={selectTab} onAdd={() => setAddOpen(true)} />

@@ -100,13 +100,14 @@ export function AddTransactionSheet({
 
   return (
     <>
-      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "oklch(0 0 0 / 0.5)", zIndex: 20 }} />
+      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "oklch(0 0 0 / 0.5)", zIndex: 20, animation: "backdropIn 0.22s ease" }} />
       <div
         style={{
           position: "absolute",
           left: 0,
           right: 0,
           bottom: 0,
+          animation: "sheetUp 0.32s cubic-bezier(0.32,0.72,0,1)",
           height: "88%",
           background: colors.sheetBg,
           borderRadius: "26px 26px 0 0",
@@ -124,6 +125,7 @@ export function AddTransactionSheet({
           <div style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary }}>Nouvelle opération</div>
           <div
             onClick={onClose}
+            className="tap"
             style={{
               width: 28,
               height: 28,
@@ -385,6 +387,7 @@ export function AddTransactionSheet({
                 </div>
                 <div
                   onClick={confirm}
+                  className="tap"
                   style={{ flex: 2, textAlign: "center", padding: 14, borderRadius: 14, background: colors.accentGold, color: colors.neutralIcon, fontSize: 14, fontWeight: 700, cursor: "pointer" }}
                 >
                   Valider

@@ -72,6 +72,7 @@ function EcheanceRow({
         </div>
         <div
           onClick={() => !paying && onPay(echeance)}
+          className={paying ? undefined : "tap"}
           style={{
             marginTop: 6,
             display: "inline-flex",
@@ -125,6 +126,7 @@ export function PlannedTab({
         </div>
         <div
           onClick={onAdd}
+          className="tap"
           style={{
             width: 30,
             height: 30,

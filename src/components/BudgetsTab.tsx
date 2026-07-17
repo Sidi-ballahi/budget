@@ -34,6 +34,7 @@ export function BudgetsTab({
         </div>
         <div
           onClick={onAddBudget}
+          className="tap"
           style={{
             width: 30,
             height: 30,
@@ -55,6 +56,7 @@ export function BudgetsTab({
         <div style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>Projets à financer</div>
         <div
           onClick={onAddProjet}
+          className="tap"
           style={{
             display: "flex",
             alignItems: "center",
@@ -112,7 +114,15 @@ export function BudgetsTab({
                 )}
               </div>
               <div style={{ height: 8, borderRadius: 100, background: "oklch(0.3 0.01 60)", overflow: "hidden", marginBottom: 8 }}>
-                <div style={{ height: "100%", borderRadius: 100, width: `${Math.min(100, Math.round(pct))}%`, background: barColor }} />
+                <div
+                  style={{
+                    height: "100%",
+                    borderRadius: 100,
+                    width: `${Math.min(100, Math.round(pct))}%`,
+                    background: barColor,
+                    transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease",
+                  }}
+                />
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: colors.textMuted }}>
                 <div>{fmtNum(b.spent)} MRU dépensés</div>

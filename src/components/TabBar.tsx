@@ -18,6 +18,7 @@ export function TabBar({ tab, onTab, onAdd }: { tab: Tab; onTab: (t: Tab) => voi
     <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", alignItems: "center", pointerEvents: "none" }}>
       <div
         onClick={onAdd}
+        className="tap"
         style={{
           pointerEvents: "auto",
           position: "relative",
@@ -55,9 +56,29 @@ export function TabBar({ tab, onTab, onAdd }: { tab: Tab; onTab: (t: Tab) => voi
           const active = tab === t.key;
           const Icon = t.Icon;
           return (
-            <div key={t.key} onClick={() => onTab(t.key)} style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}>
-              <Icon size={19} color={active ? colors.accentGreen : colors.textFaint} strokeWidth={active ? 2.4 : 2} />
-              <div style={{ fontSize: 10, color: active ? colors.textPrimary : colors.textFaint, fontWeight: active ? 700 : 500, whiteSpace: "nowrap" }}>{t.label}</div>
+            <div
+              key={t.key}
+              onClick={() => onTab(t.key)}
+              className="tap"
+              style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}
+            >
+              <Icon
+                size={19}
+                color={active ? colors.accentGreen : colors.textFaint}
+                strokeWidth={active ? 2.4 : 2}
+                style={{ transition: "color 0.2s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)", transform: active ? "scale(1.08)" : "scale(1)" }}
+              />
+              <div
+                style={{
+                  fontSize: 10,
+                  color: active ? colors.textPrimary : colors.textFaint,
+                  fontWeight: active ? 700 : 500,
+                  whiteSpace: "nowrap",
+                  transition: "color 0.2s ease",
+                }}
+              >
+                {t.label}
+              </div>
             </div>
           );
         })}

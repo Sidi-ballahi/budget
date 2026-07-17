@@ -36,6 +36,7 @@ export function ProjetDetail({
         position: "absolute",
         inset: 0,
         background: colors.bg,
+        animation: "panelInRight 0.3s cubic-bezier(0.32,0.72,0,1)",
         zIndex: 10,
         display: "flex",
         flexDirection: "column",
@@ -46,6 +47,7 @@ export function ProjetDetail({
     >
       <div
         onClick={onClose}
+        className="tap"
         style={{ display: "flex", alignItems: "center", gap: 6, color: colors.accentGreen, fontSize: 14, fontWeight: 600, marginBottom: 18, cursor: "pointer" }}
       >
         ‹ Retour
@@ -111,6 +113,7 @@ export function ProjetDetail({
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
         <div
           onClick={() => onAddContribution("verse")}
+          className="tap"
           style={{
             flex: 1,
             display: "flex",
@@ -131,6 +134,7 @@ export function ProjetDetail({
         </div>
         <div
           onClick={() => onAddContribution("retire")}
+          className="tap"
           style={{
             flex: 1,
             display: "flex",

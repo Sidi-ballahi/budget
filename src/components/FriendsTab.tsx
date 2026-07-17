@@ -36,6 +36,7 @@ export function FriendsTab({
         </div>
         <div
           onClick={onAddAmi}
+          className="tap"
           style={{
             width: 30,
             height: 30,
@@ -79,6 +80,7 @@ export function FriendsTab({
               <div
                 key={ami.id}
                 onClick={() => onOpenAmi(ami.id)}
+                className="tap"
                 style={{
                   background: colors.card,
                   border: `1px solid ${colors.cardBorder}`,

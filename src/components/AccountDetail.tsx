@@ -59,6 +59,7 @@ export function AccountDetail({
         position: "absolute",
         inset: 0,
         background: colors.bg,
+        animation: "panelInRight 0.3s cubic-bezier(0.32,0.72,0,1)",
         zIndex: 10,
         display: "flex",
         flexDirection: "column",
@@ -69,6 +70,7 @@ export function AccountDetail({
     >
       <div
         onClick={onClose}
+        className="tap"
         style={{ display: "flex", alignItems: "center", gap: 6, color: colors.accentGreen, fontSize: 14, fontWeight: 600, marginBottom: 18, cursor: "pointer" }}
       >
         ‹ Retour

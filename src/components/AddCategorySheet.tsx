@@ -41,13 +41,14 @@ export function AddCategorySheet({
 
   return (
     <>
-      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "oklch(0 0 0 / 0.5)", zIndex: 30 }} />
+      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "oklch(0 0 0 / 0.5)", zIndex: 30, animation: "backdropIn 0.22s ease" }} />
       <div
         style={{
           position: "absolute",
           left: 0,
           right: 0,
           bottom: 0,
+          animation: "sheetUp 0.32s cubic-bezier(0.32,0.72,0,1)",
           background: colors.sheetBg,
           borderRadius: "26px 26px 0 0",
           zIndex: 31,
@@ -62,6 +63,7 @@ export function AddCategorySheet({
           <div style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary }}>Nouvelle catégorie</div>
           <div
             onClick={onClose}
+            className="tap"
             style={{ width: 28, height: 28, borderRadius: "50%", background: colors.white8, display: "flex", alignItems: "center", justifyContent: "center", color: colors.textMuted, cursor: "pointer" }}
           >
             <X size={14} />
@@ -134,6 +136,7 @@ export function AddCategorySheet({
 
         <div
           onClick={save}
+          className="tap"
           style={{
             textAlign: "center",
             padding: 14,

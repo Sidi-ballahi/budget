@@ -175,6 +175,7 @@ export function DashboardTab({
           <div
             key={acc.id}
             onClick={() => onOpenAccount(acc.id)}
+            className="tap"
             style={{
               flex: "0 0 128px",
               background: colors.card,

@@ -71,13 +71,14 @@ export function AddEcheanceSheet({
 
   return (
     <>
-      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "oklch(0 0 0 / 0.5)", zIndex: 20 }} />
+      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "oklch(0 0 0 / 0.5)", zIndex: 20, animation: "backdropIn 0.22s ease" }} />
       <div
         style={{
           position: "absolute",
           left: 0,
           right: 0,
           bottom: 0,
+          animation: "sheetUp 0.32s cubic-bezier(0.32,0.72,0,1)",
           maxHeight: "88%",
           overflow: "auto",
           background: colors.sheetBg,
@@ -97,6 +98,7 @@ export function AddEcheanceSheet({
           </div>
           <div
             onClick={onClose}
+            className="tap"
             style={{ width: 28, height: 28, borderRadius: "50%", background: colors.white8, display: "flex", alignItems: "center", justifyContent: "center", color: colors.textMuted, cursor: "pointer" }}
           >
             <X size={14} />
@@ -225,6 +227,7 @@ export function AddEcheanceSheet({
 
         <div
           onClick={save}
+          className="tap"
           style={{
             textAlign: "center",
             padding: 14,
