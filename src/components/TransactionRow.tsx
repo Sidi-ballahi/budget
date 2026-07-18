@@ -1,7 +1,7 @@
 "use client";
 
 import type { Account, Category, Transaction } from "@/lib/types";
-import { colors } from "@/lib/theme";
+import { colors, glow } from "@/lib/theme";
 import { presentTx } from "@/lib/present";
 
 export function TransactionRow({
@@ -39,6 +39,7 @@ export function TransactionRow({
           fontSize: 13,
           fontWeight: 700,
           color: colors.neutralIcon,
+          boxShadow: glow(row.catColor, 0.35),
         }}
       >
         {row.initial}
@@ -75,7 +76,7 @@ export function TransactionList({
   accounts: Account[];
 }) {
   return (
-    <div style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 22, overflow: "hidden" }}>
+    <div className="glass" style={{ borderRadius: 22, overflow: "hidden" }}>
       {transactions.map((tx, i) => (
         <TransactionRow
           key={tx.clientId ?? tx.id}

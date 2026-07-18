@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AlertTriangle, Sparkles, TrendingUp, X } from "lucide-react";
-import { colors } from "@/lib/theme";
+import { colors, glassBorder, glassTint } from "@/lib/theme";
 import { computeLocalAnomalies, computeLocalForecast, computeLocalSummary } from "@/lib/finance";
 import type { Account, BudgetProgress, Category, Insights, Transaction } from "@/lib/types";
 
@@ -72,7 +72,7 @@ export function InsightsTab({
       </div>
 
       {!dismissedCards.has("resume") && (
-        <div style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 20, padding: 18, marginBottom: 14 }}>
+        <div className="glass" style={{ background: glassTint(colors.accentGold, 0.18), borderColor: glassBorder(colors.accentGold, 0.3), borderRadius: 20, padding: 18, marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <Sparkles size={15} color={colors.accentGold} />
@@ -90,7 +90,7 @@ export function InsightsTab({
       )}
 
       {!dismissedCards.has("anomalies") && (
-        <div style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 20, padding: 18, marginBottom: 14 }}>
+        <div className="glass" style={{ background: glassTint(colors.accentRed, 0.16), borderColor: glassBorder(colors.accentRed, 0.28), borderRadius: 20, padding: 18, marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <AlertTriangle size={15} color={colors.accentRed} />
@@ -128,7 +128,7 @@ export function InsightsTab({
       )}
 
       {!dismissedCards.has("previsions") && (
-        <div style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 20, padding: 18 }}>
+        <div className="glass" style={{ background: glassTint(colors.accentGreen, 0.18), borderColor: glassBorder(colors.accentGreen, 0.3), borderRadius: 20, padding: 18 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <TrendingUp size={15} color={colors.accentGreen} />

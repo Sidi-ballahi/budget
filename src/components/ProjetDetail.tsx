@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDownLeft, ArrowUpRight, Target } from "lucide-react";
-import { colors } from "@/lib/theme";
+import { colors, glassBorder, glassTint, glow } from "@/lib/theme";
 import { fmtNum, shortDate } from "@/lib/present";
 import { computeProjetProgress } from "@/lib/finance";
 import { projetDeadlineLabel } from "./ProjetCard";
@@ -24,18 +24,16 @@ export function ProjetDetail({
 
   const stat: React.CSSProperties = {
     flex: 1,
-    background: colors.card,
-    border: `1px solid ${colors.cardBorder}`,
     borderRadius: 16,
     padding: 12,
   };
 
   return (
     <div
+      className="app-bg"
       style={{
         position: "absolute",
         inset: 0,
-        background: colors.bg,
         animation: "panelInRight 0.3s cubic-bezier(0.32,0.72,0,1)",
         zIndex: 10,
         display: "flex",
@@ -63,6 +61,7 @@ export function ProjetDetail({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            boxShadow: glow(projet.couleur, 0.55),
           }}
         >
           <Target size={20} color={colors.neutralIcon} />
@@ -75,18 +74,19 @@ export function ProjetDetail({
         </div>
       </div>
 
-      <div style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 20, padding: 18, marginBottom: 14 }}>
+      <div className="glass" style={{ background: glassTint(projet.couleur, 0.2), borderColor: glassBorder(projet.couleur), borderRadius: 20, padding: 18, marginBottom: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
           <div style={{ fontSize: 24, fontWeight: 800, color: colors.textPrimary }}>{fmtNum(progress.epargne)} MRU</div>
           <div style={{ fontSize: 12.5, color: colors.textMuted }}>sur {fmtNum(projet.montantCible)} MRU</div>
         </div>
-        <div style={{ height: 10, borderRadius: 100, background: "oklch(0.3 0.01 60)", overflow: "hidden", marginBottom: 8 }}>
+        <div style={{ height: 10, borderRadius: 100, background: "oklch(1 0 0 / 0.1)", overflow: "hidden", marginBottom: 8 }}>
           <div
             style={{
               height: "100%",
               borderRadius: 100,
               width: `${Math.min(100, Math.round(progress.pct))}%`,
               background: done ? colors.accentGreen : projet.couleur,
+              boxShadow: glow(done ? colors.accentGreen : projet.couleur, 0.5),
             }}
           />
         </div>
@@ -97,11 +97,11 @@ export function ProjetDetail({
 
       {!done && projet.dateCible && (
         <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-          <div style={stat}>
+          <div className="glass" style={stat}>
             <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 4 }}>Mois restants</div>
             <div style={{ fontSize: 16, fontWeight: 800, color: colors.textPrimary }}>{progress.moisRestants}</div>
           </div>
-          <div style={stat}>
+          <div className="glass" style={stat}>
             <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 4 }}>À épargner / mois</div>
             <div style={{ fontSize: 16, fontWeight: 800, color: colors.accentGold }}>
               {fmtNum(progress.mensualiteRequise ?? 0)} MRU
@@ -127,6 +127,7 @@ export function ProjetDetail({
             cursor: "pointer",
             background: colors.accentGreen,
             color: colors.neutralIcon,
+            boxShadow: glow(colors.accentGreen, 0.4),
           }}
         >
           <ArrowUpRight size={16} />
@@ -134,7 +135,7 @@ export function ProjetDetail({
         </div>
         <div
           onClick={() => onAddContribution("retire")}
-          className="tap"
+          className="tap glass"
           style={{
             flex: 1,
             display: "flex",
@@ -146,7 +147,6 @@ export function ProjetDetail({
             fontSize: 13.5,
             fontWeight: 700,
             cursor: "pointer",
-            background: colors.white8,
             color: colors.textSecondary,
           }}
         >
@@ -165,7 +165,7 @@ export function ProjetDetail({
           {mouvements.map((m) => {
             const isVerse = m.sens === "verse";
             return (
-              <div key={m.id} style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 16, padding: 13, display: "flex", alignItems: "center", gap: 12 }}>
+              <div key={m.id} className="glass" style={{ borderRadius: 16, padding: 13, display: "flex", alignItems: "center", gap: 12 }}>
                 <div
                   style={{
                     width: 34,

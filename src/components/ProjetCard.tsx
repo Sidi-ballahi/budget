@@ -1,7 +1,7 @@
 "use client";
 
 import { Target } from "lucide-react";
-import { colors } from "@/lib/theme";
+import { colors, glassBorder, glassTint, glow } from "@/lib/theme";
 import { fmtNum } from "@/lib/present";
 import type { ProjetProgress } from "@/lib/finance";
 
@@ -21,10 +21,10 @@ export function ProjetCard({ progress, onOpen }: { progress: ProjetProgress; onO
   return (
     <div
       onClick={onOpen}
-      className={onOpen ? "tap" : undefined}
+      className={onOpen ? "tap glass" : "glass"}
       style={{
-        background: colors.card,
-        border: `1px solid ${colors.cardBorder}`,
+        background: glassTint(projet.couleur, 0.2),
+        borderColor: glassBorder(projet.couleur, 0.32),
         borderRadius: 18,
         padding: 16,
         cursor: onOpen ? "pointer" : "default",
@@ -39,13 +39,14 @@ export function ProjetCard({ progress, onOpen }: { progress: ProjetProgress; onO
           {Math.round(pct)}%
         </div>
       </div>
-      <div style={{ height: 8, borderRadius: 100, background: "oklch(0.3 0.01 60)", overflow: "hidden", marginBottom: 8 }}>
+      <div style={{ height: 8, borderRadius: 100, background: "oklch(1 0 0 / 0.1)", overflow: "hidden", marginBottom: 8 }}>
         <div
           style={{
             height: "100%",
             borderRadius: 100,
             width: `${Math.min(100, Math.round(pct))}%`,
             background: done ? colors.accentGreen : projet.couleur,
+            boxShadow: glow(done ? colors.accentGreen : projet.couleur, 0.5),
             transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease",
           }}
         />

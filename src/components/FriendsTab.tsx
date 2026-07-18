@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronRight, Plus, Users } from "lucide-react";
-import { colors } from "@/lib/theme";
+import { colors, glassBorder, glassTint, glow } from "@/lib/theme";
 import { fmtNum } from "@/lib/present";
 import { computeAmiBalance } from "@/lib/finance";
 import type { Ami, PretMouvement } from "@/lib/types";
@@ -36,12 +36,11 @@ export function FriendsTab({
         </div>
         <div
           onClick={onAddAmi}
-          className="tap"
+          className="tap glass"
           style={{
             width: 30,
             height: 30,
             borderRadius: "50%",
-            background: colors.white8,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -55,11 +54,11 @@ export function FriendsTab({
       </div>
 
       <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
-        <div style={{ flex: 1, background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 18, padding: 14 }}>
+        <div className="glass" style={{ flex: 1, background: glassTint(colors.accentGreen, 0.2), borderColor: glassBorder(colors.accentGreen, 0.3), borderRadius: 18, padding: 14 }}>
           <div style={{ fontSize: 11.5, color: colors.textMuted, marginBottom: 5 }}>On vous doit</div>
           <div style={{ fontSize: 17, fontWeight: 800, color: colors.accentGreen }}>{fmtNum(owedToMe)} MRU</div>
         </div>
-        <div style={{ flex: 1, background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 18, padding: 14 }}>
+        <div className="glass" style={{ flex: 1, background: iOwe > 0 ? glassTint(colors.accentRed, 0.2) : undefined, borderColor: iOwe > 0 ? glassBorder(colors.accentRed, 0.3) : undefined, borderRadius: 18, padding: 14 }}>
           <div style={{ fontSize: 11.5, color: colors.textMuted, marginBottom: 5 }}>Vous devez</div>
           <div style={{ fontSize: 17, fontWeight: 800, color: iOwe > 0 ? colors.accentRed : colors.textPrimary }}>{fmtNum(iOwe)} MRU</div>
         </div>
@@ -80,10 +79,10 @@ export function FriendsTab({
               <div
                 key={ami.id}
                 onClick={() => onOpenAmi(ami.id)}
-                className="tap"
+                className="tap glass"
                 style={{
-                  background: colors.card,
-                  border: `1px solid ${colors.cardBorder}`,
+                  background: glassTint(ami.couleur),
+                  borderColor: glassBorder(ami.couleur),
                   borderRadius: 18,
                   padding: 14,
                   display: "flex",
@@ -105,6 +104,7 @@ export function FriendsTab({
                     fontSize: 16,
                     fontWeight: 800,
                     flexShrink: 0,
+                    boxShadow: glow(ami.couleur, 0.5),
                   }}
                 >
                   {ami.nom[0]?.toUpperCase()}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ArrowDownCircle, ArrowUpCircle, X } from "lucide-react";
-import { colors, COLOR_SWATCHES } from "@/lib/theme";
+import { colors, COLOR_SWATCHES, glow } from "@/lib/theme";
 import type { CategoryType, NewCategoryInput } from "@/lib/types";
 
 const TYPE_DEFS: { key: CategoryType; label: string; Icon: typeof ArrowDownCircle }[] = [
@@ -41,20 +41,19 @@ export function AddCategorySheet({
 
   return (
     <>
-      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "oklch(0 0 0 / 0.5)", zIndex: 30, animation: "backdropIn 0.22s ease" }} />
+      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "oklch(0 0 0 / 0.5)", backdropFilter: "blur(2px)", zIndex: 30, animation: "backdropIn 0.22s ease" }} />
       <div
+        className="glass-sheet"
         style={{
           position: "absolute",
           left: 0,
           right: 0,
           bottom: 0,
           animation: "sheetUp 0.32s cubic-bezier(0.32,0.72,0,1)",
-          background: colors.sheetBg,
           borderRadius: "26px 26px 0 0",
           zIndex: 31,
           boxSizing: "border-box",
           padding: "14px 18px calc(env(safe-area-inset-bottom, 0px) + 28px)",
-          boxShadow: "0 -20px 40px oklch(0 0 0 / 0.4)",
         }}
       >
         <div style={{ width: 36, height: 4, borderRadius: 100, background: colors.white15, alignSelf: "center", margin: "0 auto 16px" }} />
@@ -63,8 +62,8 @@ export function AddCategorySheet({
           <div style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary }}>Nouvelle catégorie</div>
           <div
             onClick={onClose}
-            className="tap"
-            style={{ width: 28, height: 28, borderRadius: "50%", background: colors.white8, display: "flex", alignItems: "center", justifyContent: "center", color: colors.textMuted, cursor: "pointer" }}
+            className="tap glass"
+            style={{ width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: colors.textMuted, cursor: "pointer" }}
           >
             <X size={14} />
           </div>
@@ -75,11 +74,10 @@ export function AddCategorySheet({
           value={nom}
           onChange={(e) => setNom(e.target.value)}
           placeholder="ex : Assurance, Freelance…"
+          className="glass-input"
           style={{
             width: "100%",
             boxSizing: "border-box",
-            background: colors.card,
-            border: `1px solid ${colors.white8}`,
             borderRadius: 12,
             padding: "12px 14px",
             color: colors.textSecondary,
@@ -146,6 +144,7 @@ export function AddCategorySheet({
             cursor: canSave ? "pointer" : "default",
             background: canSave ? colors.accentGold : colors.white8,
             color: canSave ? colors.neutralIcon : colors.textFaint,
+            boxShadow: canSave ? glow(colors.accentGold, 0.4) : "none",
           }}
         >
           {saving ? "Création…" : "Créer la catégorie"}

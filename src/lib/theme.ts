@@ -36,3 +36,32 @@ export const COLOR_SWATCHES = [
   "oklch(0.7 0.14 190)",
   "oklch(0.7 0.16 340)",
 ];
+
+// --- iOS 26 "Liquid Glass" helpers -----------------------------------
+// Panels use `.glass` / `.glass-sheet` / `.glass-bar` (see globals.css)
+// for the frosted blur + specular highlight. These helpers generate a
+// swatch-tinted fill/border/glow so glass surfaces pick up each item's
+// own color instead of sitting flat and neutral.
+function parseOklch(input: string): { l: number; c: number; h: number } | null {
+  const m = input.match(/oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)/);
+  if (!m) return null;
+  return { l: parseFloat(m[1]), c: parseFloat(m[2]), h: parseFloat(m[3]) };
+}
+
+export function glassTint(swatch: string, opacity = 0.34): string {
+  const p = parseOklch(swatch);
+  if (!p) return swatch;
+  return `linear-gradient(155deg, oklch(${p.l} ${p.c} ${p.h} / ${opacity}), oklch(${p.l} ${p.c} ${p.h} / ${opacity * 0.28}) 60%, oklch(1 0 0 / 0.05) 100%)`;
+}
+
+export function glassBorder(swatch: string, opacity = 0.45): string {
+  const p = parseOklch(swatch);
+  if (!p) return swatch;
+  return `oklch(${p.l} ${p.c} ${p.h} / ${opacity})`;
+}
+
+export function glow(swatch: string, opacity = 0.4): string {
+  const p = parseOklch(swatch);
+  if (!p) return "none";
+  return `0 8px 22px oklch(${p.l} ${p.c} ${p.h} / ${opacity})`;
+}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { colors } from "@/lib/theme";
 import { addAccount, addAmi, addBudget, addContribution, addEcheance, addPret, addProjet, addTransaction, payerEcheance } from "@/lib/sync";
 import { DashboardTab } from "./DashboardTab";
 import { AccountsTab } from "./AccountsTab";
@@ -72,13 +71,13 @@ export function MainApp({ data }: { data: AppData }) {
 
   return (
     <div
+      className="app-bg"
       style={{
         height: "100%",
         minHeight: "100dvh",
         display: "flex",
         flexDirection: "column",
         boxSizing: "border-box",
-        background: colors.bg,
         position: "relative",
         overflow: "hidden",
       }}

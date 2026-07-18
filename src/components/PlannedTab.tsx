@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarClock, Check, Plus, RefreshCw, Tag } from "lucide-react";
-import { colors } from "@/lib/theme";
+import { colors, glassBorder, glassTint, glow } from "@/lib/theme";
 import { fmtNum, shortDate } from "@/lib/present";
 import { RECURRENCE_LABELS, monthlyEquivalent } from "@/lib/recurrence";
 import type { Account, Category, Echeance } from "@/lib/types";
@@ -36,14 +36,15 @@ function EcheanceRow({
   const acc = accounts.find((a) => a.id === echeance.compteId);
   const due = dueLabel(echeance.prochaineDate);
   const isRevenu = echeance.type === "revenu";
+  const tintColor = cat?.couleur ?? (isRevenu ? colors.accentGreen : colors.accentBlue);
   return (
-    <div style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 18, padding: 14, display: "flex", alignItems: "center", gap: 12 }}>
+    <div className="glass" style={{ background: glassTint(tintColor, 0.16), borderColor: glassBorder(tintColor, 0.28), borderRadius: 18, padding: 14, display: "flex", alignItems: "center", gap: 12 }}>
       <div
         style={{
           width: 38,
           height: 38,
           borderRadius: 12,
-          background: colors.white6,
+          background: glassTint(tintColor, 0.4),
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -82,6 +83,7 @@ function EcheanceRow({
             fontWeight: 700,
             color: colors.neutralIcon,
             background: paying ? colors.white15 : colors.accentGold,
+            boxShadow: paying ? "none" : glow(colors.accentGold, 0.45),
             borderRadius: 100,
             padding: "4px 10px",
             cursor: paying ? "default" : "pointer",
@@ -126,12 +128,11 @@ export function PlannedTab({
         </div>
         <div
           onClick={onAdd}
-          className="tap"
+          className="tap glass"
           style={{
             width: 30,
             height: 30,
             borderRadius: "50%",
-            background: colors.white8,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

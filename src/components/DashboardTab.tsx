@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarClock } from "lucide-react";
-import { colors } from "@/lib/theme";
+import { colors, glassBorder, glassTint, glow } from "@/lib/theme";
 import { fmtMoney, fmtNum, shortDate } from "@/lib/present";
 import { computeCategoryBreakdown, totalReserveProjets } from "@/lib/finance";
 import { TransactionList } from "./TransactionRow";
@@ -75,11 +75,11 @@ export function DashboardTab({
           <div style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary }}>Tableau de bord</div>
         </div>
         <div
+          className="glass"
           style={{
             display: "flex",
             alignItems: "center",
             gap: 6,
-            background: colors.card,
             borderRadius: 100,
             padding: "6px 12px",
             marginTop: 4,
@@ -91,13 +91,22 @@ export function DashboardTab({
               height: 7,
               borderRadius: "50%",
               background: hasUnsynced ? colors.accentGold : colors.accentGreen,
+              boxShadow: glow(hasUnsynced ? colors.accentGold : colors.accentGreen, 0.7),
             }}
           />
           <div style={{ fontSize: 11, color: colors.textMuted }}>{hasUnsynced ? "En attente" : "À jour"}</div>
         </div>
       </div>
 
-      <div style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 22, padding: 20, marginBottom: 16 }}>
+      <div
+        className="glass"
+        style={{
+          background: glassTint(colors.accentBlue, 0.22),
+          borderRadius: 22,
+          padding: 20,
+          marginBottom: 16,
+        }}
+      >
         <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 6 }}>Solde global</div>
         <div style={{ fontSize: 32, fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.5 }}>
           {fmtMoney(globalBalance, false)}
@@ -119,9 +128,8 @@ export function DashboardTab({
       {upcoming.length > 0 && (
         <div
           onClick={onGoToPlanned}
+          className="tap glass"
           style={{
-            background: colors.card,
-            border: `1px solid ${colors.cardBorder}`,
             borderRadius: 16,
             padding: "12px 14px",
             marginBottom: 16,
@@ -153,20 +161,21 @@ export function DashboardTab({
       {alertsMsg && (
         <div
           onClick={onGoToBudgets}
+          className="tap glass"
           style={{
             display: "flex",
             alignItems: "center",
             gap: 10,
-            background: "oklch(0.68 0.15 25 / 0.14)",
-            border: "1px solid oklch(0.68 0.15 25 / 0.35)",
+            background: glassTint(colors.accentRed, 0.28),
+            borderColor: glassBorder(colors.accentRed, 0.45),
             borderRadius: 16,
             padding: "12px 14px",
             marginBottom: 16,
             cursor: "pointer",
           }}
         >
-          <div style={{ width: 8, height: 8, borderRadius: "50%", background: colors.accentRed, flexShrink: 0 }} />
-          <div style={{ fontSize: 12.5, color: "oklch(0.9 0.02 40)", lineHeight: 1.4 }}>{alertsMsg}</div>
+          <div style={{ width: 8, height: 8, borderRadius: "50%", background: colors.accentRed, flexShrink: 0, boxShadow: glow(colors.accentRed, 0.7) }} />
+          <div style={{ fontSize: 12.5, color: "oklch(0.92 0.03 40)", lineHeight: 1.4 }}>{alertsMsg}</div>
         </div>
       )}
 
@@ -175,17 +184,17 @@ export function DashboardTab({
           <div
             key={acc.id}
             onClick={() => onOpenAccount(acc.id)}
-            className="tap"
+            className="tap glass"
             style={{
               flex: "0 0 128px",
-              background: colors.card,
-              border: `1px solid ${colors.cardBorder}`,
+              background: glassTint(acc.couleur),
+              borderColor: glassBorder(acc.couleur),
               borderRadius: 18,
               padding: 14,
               cursor: "pointer",
             }}
           >
-            <div style={{ width: 10, height: 10, borderRadius: 3, background: acc.couleur, marginBottom: 20 }} />
+            <div style={{ width: 10, height: 10, borderRadius: 3, background: acc.couleur, marginBottom: 20, boxShadow: glow(acc.couleur, 0.6) }} />
             <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 4 }}>{acc.nom}</div>
             <div style={{ fontSize: 15, fontWeight: 700, color: colors.textPrimary }}>{fmtMoney(acc.solde, false).replace("-", "")}</div>
           </div>
@@ -193,14 +202,14 @@ export function DashboardTab({
       </div>
 
       <div style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary, marginBottom: 10 }}>Répartition des dépenses</div>
-      <div style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 22, padding: 20, marginBottom: 18, display: "flex", gap: 20, alignItems: "center" }}>
-        <div style={{ width: 104, height: 104, borderRadius: "50%", flexShrink: 0, background: donutGradient, position: "relative" }}>
+      <div className="glass" style={{ borderRadius: 22, padding: 20, marginBottom: 18, display: "flex", gap: 20, alignItems: "center" }}>
+        <div style={{ width: 104, height: 104, borderRadius: "50%", flexShrink: 0, background: donutGradient, position: "relative", boxShadow: "0 6px 18px oklch(0 0 0 / 0.35)" }}>
           <div
+            className="glass"
             style={{
               position: "absolute",
               inset: 14,
               borderRadius: "50%",
-              background: colors.card,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -225,21 +234,25 @@ export function DashboardTab({
       </div>
 
       <div style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary, marginBottom: 10 }}>Évolution du solde</div>
-      <div style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 22, padding: "20px 16px", marginBottom: 18 }}>
+      <div className="glass" style={{ borderRadius: 22, padding: "20px 16px", marginBottom: 18 }}>
         <div style={{ display: "flex", alignItems: "flex-end", gap: 10, height: 80 }}>
-          {trend.map((bar, i) => (
+          {trend.map((bar, i) => {
+            const isLast = i === trend.length - 1;
+            return (
             <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, height: "100%", justifyContent: "flex-end" }}>
               <div
                 style={{
                   width: "100%",
                   borderRadius: "6px 6px 2px 2px",
-                  background: i === trend.length - 1 ? colors.accentGreen : colors.white15,
+                  background: isLast ? `linear-gradient(180deg, oklch(0.8 0.15 150), ${colors.accentGreen})` : colors.white15,
+                  boxShadow: isLast ? glow(colors.accentGreen, 0.45) : "none",
                   height: `${Math.max(2, Math.round((bar.balance / maxTrend) * 100))}%`,
                 }}
               />
               <div style={{ fontSize: 10, color: colors.textFaint }}>{bar.label}</div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Tag } from "lucide-react";
-import { colors } from "@/lib/theme";
+import { colors, glassBorder, glassTint, glow } from "@/lib/theme";
 import { fmtNum, todayLong } from "@/lib/present";
 import { suggestCategoryLocal } from "@/lib/finance";
 import { addCategory } from "@/lib/sync";
@@ -100,8 +100,9 @@ export function AddTransactionSheet({
 
   return (
     <>
-      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "oklch(0 0 0 / 0.5)", zIndex: 20, animation: "backdropIn 0.22s ease" }} />
+      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "oklch(0 0 0 / 0.5)", backdropFilter: "blur(2px)", zIndex: 20, animation: "backdropIn 0.22s ease" }} />
       <div
+        className="glass-sheet"
         style={{
           position: "absolute",
           left: 0,
@@ -109,14 +110,12 @@ export function AddTransactionSheet({
           bottom: 0,
           animation: "sheetUp 0.32s cubic-bezier(0.32,0.72,0,1)",
           height: "88%",
-          background: colors.sheetBg,
           borderRadius: "26px 26px 0 0",
           zIndex: 21,
           boxSizing: "border-box",
           padding: "14px 18px calc(env(safe-area-inset-bottom, 0px) + 28px)",
           display: "flex",
           flexDirection: "column",
-          boxShadow: "0 -20px 40px oklch(0 0 0 / 0.4)",
         }}
       >
         <div style={{ width: 36, height: 4, borderRadius: 100, background: colors.white15, alignSelf: "center", marginBottom: 16 }} />
@@ -125,12 +124,11 @@ export function AddTransactionSheet({
           <div style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary }}>Nouvelle opération</div>
           <div
             onClick={onClose}
-            className="tap"
+            className="tap glass"
             style={{
               width: 28,
               height: 28,
               borderRadius: "50%",
-              background: colors.white8,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -143,7 +141,7 @@ export function AddTransactionSheet({
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 6, background: colors.card, borderRadius: 12, padding: 4, marginBottom: 20 }}>
+        <div className="glass" style={{ display: "flex", gap: 6, borderRadius: 12, padding: 4, marginBottom: 20 }}>
           {TYPE_DEFS.map((t) => (
             <div
               key={t.key}
@@ -207,6 +205,7 @@ export function AddTransactionSheet({
                   cursor: canGoStep2 ? "pointer" : "default",
                   background: canGoStep2 ? colors.accentGreen : colors.white8,
                   color: canGoStep2 ? colors.neutralIcon : colors.textFaint,
+                  boxShadow: canGoStep2 ? glow(colors.accentGreen, 0.4) : "none",
                 }}
               >
                 Continuer
@@ -221,11 +220,10 @@ export function AddTransactionSheet({
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
                 placeholder="ex : Restaurant, Taxi, Loyer…"
+                className="glass-input"
                 style={{
                   width: "100%",
                   boxSizing: "border-box",
-                  background: colors.card,
-                  border: `1px solid ${colors.white8}`,
                   borderRadius: 12,
                   padding: "12px 14px",
                   color: colors.textSecondary,
@@ -311,9 +309,9 @@ export function AddTransactionSheet({
                             borderRadius: 14,
                             textAlign: "center",
                             cursor: "pointer",
-                            background: selected ? colors.white8 : colors.white4,
+                            background: selected ? glassTint(cat.couleur, 0.32) : colors.white4,
                             color: selected ? colors.textPrimary : colors.textSecondary,
-                            border: `1px solid ${selected ? cat.couleur : "transparent"}`,
+                            border: `1px solid ${selected ? glassBorder(cat.couleur) : "transparent"}`,
                           }}
                         >
                           <Tag size={16} color={cat.couleur} style={{ margin: "0 auto 6px", display: "block" }} />
@@ -359,6 +357,7 @@ export function AddTransactionSheet({
                     cursor: canGoStep3 ? "pointer" : "default",
                     background: canGoStep3 ? colors.accentGreen : colors.white6,
                     color: canGoStep3 ? colors.neutralIcon : colors.textFaint,
+                    boxShadow: canGoStep3 ? glow(colors.accentGreen, 0.4) : "none",
                   }}
                 >
                   Continuer
@@ -370,7 +369,7 @@ export function AddTransactionSheet({
           {step === 3 && (
             <>
               <div style={{ fontSize: 12.5, fontWeight: 700, color: colors.textMuted, marginBottom: 12 }}>RÉCAPITULATIF</div>
-              <div style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 18, padding: 18, marginBottom: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+              <div className="glass" style={{ borderRadius: 18, padding: 18, marginBottom: 20, display: "flex", flexDirection: "column", gap: 12 }}>
                 <Row label="Type" value={typeLabel} strong />
                 <Row label="Montant" value={fmtNum(amountNum) + " MRU"} big />
                 <Row label="Compte" value={accountName} strong />
@@ -388,7 +387,7 @@ export function AddTransactionSheet({
                 <div
                   onClick={confirm}
                   className="tap"
-                  style={{ flex: 2, textAlign: "center", padding: 14, borderRadius: 14, background: colors.accentGold, color: colors.neutralIcon, fontSize: 14, fontWeight: 700, cursor: "pointer" }}
+                  style={{ flex: 2, textAlign: "center", padding: 14, borderRadius: 14, background: colors.accentGold, color: colors.neutralIcon, fontSize: 14, fontWeight: 700, cursor: "pointer", boxShadow: glow(colors.accentGold, 0.4) }}
                 >
                   Valider
                 </div>

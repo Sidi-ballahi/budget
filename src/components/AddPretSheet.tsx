@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 import { ArrowDownLeft, ArrowUpRight, X } from "lucide-react";
-import { colors } from "@/lib/theme";
+import { colors, glow } from "@/lib/theme";
 import { newClientId } from "@/lib/sync";
 import type { Account, Ami, NewPretInput, PretDirection } from "@/lib/types";
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
   boxSizing: "border-box",
-  background: colors.card,
-  border: `1px solid ${colors.white8}`,
+  background: "linear-gradient(155deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0.02))",
+  border: "1px solid oklch(1 0 0 / 0.12)",
+  WebkitBackdropFilter: "blur(18px) saturate(160%)",
+  backdropFilter: "blur(18px) saturate(160%)",
   borderRadius: 12,
   padding: "12px 14px",
   color: colors.textSecondary,
@@ -63,20 +65,19 @@ export function AddPretSheet({
 
   return (
     <>
-      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "oklch(0 0 0 / 0.5)", zIndex: 20, animation: "backdropIn 0.22s ease" }} />
+      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "oklch(0 0 0 / 0.5)", backdropFilter: "blur(2px)", zIndex: 20, animation: "backdropIn 0.22s ease" }} />
       <div
+        className="glass-sheet"
         style={{
           position: "absolute",
           left: 0,
           right: 0,
           bottom: 0,
           animation: "sheetUp 0.32s cubic-bezier(0.32,0.72,0,1)",
-          background: colors.sheetBg,
           borderRadius: "26px 26px 0 0",
           zIndex: 21,
           boxSizing: "border-box",
           padding: "14px 18px calc(env(safe-area-inset-bottom, 0px) + 28px)",
-          boxShadow: "0 -20px 40px oklch(0 0 0 / 0.4)",
         }}
       >
         <div style={{ width: 36, height: 4, borderRadius: 100, background: colors.white15, margin: "0 auto 16px" }} />
@@ -85,8 +86,8 @@ export function AddPretSheet({
           <div style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary }}>Mouvement avec {ami.nom}</div>
           <div
             onClick={onClose}
-            className="tap"
-            style={{ width: 28, height: 28, borderRadius: "50%", background: colors.white8, display: "flex", alignItems: "center", justifyContent: "center", color: colors.textMuted, cursor: "pointer" }}
+            className="tap glass"
+            style={{ width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: colors.textMuted, cursor: "pointer" }}
           >
             <X size={14} />
           </div>
@@ -202,6 +203,7 @@ export function AddPretSheet({
             cursor: canSave ? "pointer" : "default",
             background: canSave ? (direction === "recu" ? colors.accentGreen : colors.accentGold) : colors.white8,
             color: canSave ? colors.neutralIcon : colors.textFaint,
+            boxShadow: canSave ? glow(direction === "recu" ? colors.accentGreen : colors.accentGold, 0.4) : "none",
           }}
         >
           {saving ? "Enregistrement…" : "Enregistrer"}

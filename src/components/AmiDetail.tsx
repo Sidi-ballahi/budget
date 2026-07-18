@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
-import { colors } from "@/lib/theme";
+import { colors, glow } from "@/lib/theme";
 import { fmtNum, shortDate } from "@/lib/present";
 import { computeAmiBalance } from "@/lib/finance";
 import { amiBalanceLabel } from "./FriendsTab";
@@ -26,10 +26,10 @@ export function AmiDetail({
 
   return (
     <div
+      className="app-bg"
       style={{
         position: "absolute",
         inset: 0,
-        background: colors.bg,
         animation: "panelInRight 0.3s cubic-bezier(0.32,0.72,0,1)",
         zIndex: 10,
         display: "flex",
@@ -60,6 +60,7 @@ export function AmiDetail({
             justifyContent: "center",
             fontSize: 18,
             fontWeight: 800,
+            boxShadow: glow(ami.couleur, 0.55),
           }}
         >
           {ami.nom[0]?.toUpperCase()}
@@ -87,6 +88,7 @@ export function AmiDetail({
             cursor: "pointer",
             background: colors.accentGold,
             color: colors.neutralIcon,
+            boxShadow: glow(colors.accentGold, 0.4),
           }}
         >
           <ArrowUpRight size={16} />
@@ -108,6 +110,7 @@ export function AmiDetail({
             cursor: "pointer",
             background: colors.accentGreen,
             color: colors.neutralIcon,
+            boxShadow: glow(colors.accentGreen, 0.4),
           }}
         >
           <ArrowDownLeft size={16} />
@@ -126,7 +129,7 @@ export function AmiDetail({
             const acc = accounts.find((a) => a.id === m.compteId);
             const isDonne = m.direction === "donne";
             return (
-              <div key={m.id} style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 16, padding: 13, display: "flex", alignItems: "center", gap: 12 }}>
+              <div key={m.id} className="glass" style={{ borderRadius: 16, padding: 13, display: "flex", alignItems: "center", gap: 12 }}>
                 <div
                   style={{
                     width: 34,

@@ -10,10 +10,71 @@ body {
 
 body {
   margin: 0;
-  background: oklch(0.12 0.01 60);
+  background: oklch(0.12 0.014 260);
   font-family: var(--font-manrope), "Manrope", sans-serif;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
+}
+
+/* Colorful mesh backdrop the Liquid Glass panels blur & saturate.
+   Applied to full-screen containers instead of `body` since the app
+   shell owns its own 100dvh box. */
+.app-bg {
+  background:
+    radial-gradient(900px 560px at 8% -8%, oklch(0.58 0.16 230 / 0.32), transparent 60%),
+    radial-gradient(780px 560px at 108% -4%, oklch(0.64 0.17 150 / 0.26), transparent 58%),
+    radial-gradient(760px 760px at 96% 55%, oklch(0.6 0.19 300 / 0.24), transparent 58%),
+    radial-gradient(820px 720px at -6% 96%, oklch(0.74 0.15 80 / 0.26), transparent 58%),
+    radial-gradient(640px 640px at 55% 108%, oklch(0.62 0.18 25 / 0.18), transparent 55%),
+    oklch(0.12 0.014 260);
+}
+
+/* iOS 26 "Liquid Glass": frosted, saturating blur + specular top edge.
+   Panels layer a translucent gradient over whatever colorful backdrop
+   sits behind them (.app-bg, tinted siblings, category swatches…). */
+.glass {
+  position: relative;
+  background: linear-gradient(155deg, oklch(1 0 0 / 0.1), oklch(1 0 0 / 0.03) 55%, oklch(1 0 0 / 0.05) 100%);
+  -webkit-backdrop-filter: blur(26px) saturate(190%);
+  backdrop-filter: blur(26px) saturate(190%);
+  border: 1px solid oklch(1 0 0 / 0.14);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.22),
+    0 16px 36px -18px oklch(0 0 0 / 0.6),
+    0 2px 10px oklch(0 0 0 / 0.22);
+}
+
+.glass-sheet {
+  background: linear-gradient(180deg, oklch(0.28 0.035 260 / 0.78), oklch(0.15 0.02 260 / 0.93));
+  -webkit-backdrop-filter: blur(40px) saturate(190%);
+  backdrop-filter: blur(40px) saturate(190%);
+  border-top: 1px solid oklch(1 0 0 / 0.16);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.2), 0 -24px 60px oklch(0 0 0 / 0.5);
+}
+
+.glass-bar {
+  background: linear-gradient(180deg, oklch(0.26 0.035 260 / 0.55), oklch(0.14 0.02 260 / 0.84));
+  -webkit-backdrop-filter: blur(30px) saturate(200%);
+  backdrop-filter: blur(30px) saturate(200%);
+  border-top: 1px solid oklch(1 0 0 / 0.14);
+}
+
+.glass-key {
+  background: linear-gradient(155deg, oklch(1 0 0 / 0.08), oklch(1 0 0 / 0.02));
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid oklch(1 0 0 / 0.08);
+}
+
+.glass-input {
+  background: linear-gradient(155deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0.02)) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid oklch(1 0 0 / 0.12) !important;
+  transition: border-color 0.15s ease;
+}
+.glass-input:focus {
+  border-color: oklch(0.78 0.13 80 / 0.55) !important;
 }
 
 /* Press feedback for tappable rows, cards and buttons. Purely additive

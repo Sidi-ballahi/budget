@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus, Tag, Target } from "lucide-react";
-import { colors } from "@/lib/theme";
+import { colors, glassBorder, glassTint, glow } from "@/lib/theme";
 import { fmtNum } from "@/lib/present";
 import { computeProjetProgress } from "@/lib/finance";
 import { ProjetCard } from "./ProjetCard";
@@ -34,12 +34,11 @@ export function BudgetsTab({
         </div>
         <div
           onClick={onAddBudget}
-          className="tap"
+          className="tap glass"
           style={{
             width: 30,
             height: 30,
             borderRadius: "50%",
-            background: colors.white8,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -91,8 +90,9 @@ export function BudgetsTab({
           const isOver = pct >= 100;
           const isAlert = pct >= 80;
           const barColor = isOver ? colors.accentRed : isAlert ? colors.accentGold : colors.accentGreen;
+          const cardTint = cat?.couleur ?? barColor;
           return (
-            <div key={b.id} style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 18, padding: 16 }}>
+            <div key={b.id} className="glass" style={{ background: glassTint(cardTint, 0.2), borderColor: glassBorder(cardTint, 0.3), borderRadius: 18, padding: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <Tag size={14} color={cat?.couleur ?? colors.textFaint} />
@@ -104,7 +104,7 @@ export function BudgetsTab({
                       fontSize: 10.5,
                       fontWeight: 700,
                       color: colors.accentRed,
-                      background: "oklch(0.68 0.15 25 / 0.15)",
+                      background: "oklch(0.68 0.15 25 / 0.18)",
                       padding: "3px 8px",
                       borderRadius: 100,
                     }}
@@ -113,13 +113,14 @@ export function BudgetsTab({
                   </div>
                 )}
               </div>
-              <div style={{ height: 8, borderRadius: 100, background: "oklch(0.3 0.01 60)", overflow: "hidden", marginBottom: 8 }}>
+              <div style={{ height: 8, borderRadius: 100, background: "oklch(1 0 0 / 0.1)", overflow: "hidden", marginBottom: 8 }}>
                 <div
                   style={{
                     height: "100%",
                     borderRadius: 100,
                     width: `${Math.min(100, Math.round(pct))}%`,
                     background: barColor,
+                    boxShadow: glow(barColor, 0.5),
                     transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease",
                   }}
                 />

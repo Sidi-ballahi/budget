@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Download } from "lucide-react";
-import { colors } from "@/lib/theme";
+import { colors, glassBorder, glassTint, glow } from "@/lib/theme";
 import { fmtMoney, fmtNum } from "@/lib/present";
 import { computeReleve } from "@/lib/finance";
 import { downloadRelevePdf } from "@/lib/releve-pdf";
@@ -55,10 +55,10 @@ export function AccountDetail({
 
   return (
     <div
+      className="app-bg"
       style={{
         position: "absolute",
         inset: 0,
-        background: colors.bg,
         animation: "panelInRight 0.3s cubic-bezier(0.32,0.72,0,1)",
         zIndex: 10,
         display: "flex",
@@ -76,13 +76,13 @@ export function AccountDetail({
         ‹ Retour
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-        <div style={{ width: 44, height: 44, borderRadius: 14, background: account.couleur }} />
+        <div style={{ width: 44, height: 44, borderRadius: 14, background: account.couleur, boxShadow: glow(account.couleur, 0.55) }} />
         <div>
           <div style={{ fontSize: 20, fontWeight: 800, color: colors.textPrimary }}>{account.nom}</div>
           <div style={{ fontSize: 12.5, color: colors.textFaint }}>{account.type === "cash" ? "Espèces" : "Compte bancaire"}</div>
         </div>
       </div>
-      <div style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 20, padding: 18, marginBottom: 20 }}>
+      <div className="glass" style={{ background: glassTint(account.couleur, 0.22), borderColor: glassBorder(account.couleur), borderRadius: 20, padding: 18, marginBottom: 20 }}>
         <div style={{ fontSize: 12.5, color: colors.textMuted, marginBottom: 6 }}>Solde du compte</div>
         <div style={{ fontSize: 26, fontWeight: 800, color: colors.textPrimary }}>{fmtMoney(account.solde, false).replace("-", "")}</div>
       </div>
@@ -105,7 +105,7 @@ export function AccountDetail({
         </div>
       </div>
 
-      <div style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 20, padding: 16, marginBottom: 20 }}>
+      <div className="glass" style={{ borderRadius: 20, padding: 16, marginBottom: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: colors.textMuted, padding: "6px 0" }}>
           <div>Solde d&apos;ouverture</div>
           <div style={{ color: colors.textSecondary, fontWeight: 600 }}>{fmtMoney(releve.soldeOuverture, false)}</div>
@@ -138,6 +138,7 @@ export function AccountDetail({
             cursor: "pointer",
             background: colors.accentGold,
             color: colors.neutralIcon,
+            boxShadow: glow(colors.accentGold, 0.4),
           }}
         >
           <Download size={15} />

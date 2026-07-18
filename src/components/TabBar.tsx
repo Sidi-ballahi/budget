@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarClock, Home, Sparkles, Users, Wallet, PiggyBank } from "lucide-react";
-import { colors } from "@/lib/theme";
+import { colors, glassBorder, glow } from "@/lib/theme";
 import type { Tab } from "@/lib/types";
 
 const TAB_DEFS: { key: Tab; label: string; Icon: typeof Home }[] = [
@@ -26,14 +26,14 @@ export function TabBar({ tab, onTab, onAdd }: { tab: Tab; onTab: (t: Tab) => voi
           width: 56,
           height: 56,
           borderRadius: "50%",
-          background: colors.accentGold,
+          background: `linear-gradient(155deg, oklch(0.85 0.14 80), ${colors.accentGold})`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           fontSize: 26,
           fontWeight: 700,
           color: colors.neutralIcon,
-          boxShadow: "0 8px 20px oklch(0.78 0.13 80 / 0.4)",
+          boxShadow: `${glow(colors.accentGold, 0.55)}, inset 0 1px 0 oklch(1 0 0 / 0.5)`,
           cursor: "pointer",
           zIndex: 3,
         }}
@@ -41,12 +41,10 @@ export function TabBar({ tab, onTab, onAdd }: { tab: Tab; onTab: (t: Tab) => voi
         +
       </div>
       <div
+        className="glass-bar"
         style={{
           pointerEvents: "auto",
           width: "100%",
-          background: "oklch(0.16 0.012 60 / 0.92)",
-          backdropFilter: "blur(16px)",
-          borderTop: `1px solid ${colors.white6}`,
           display: "flex",
           padding: `14px 8px calc(env(safe-area-inset-bottom, 0px) + 30px)`,
           boxSizing: "border-box",
@@ -62,12 +60,25 @@ export function TabBar({ tab, onTab, onAdd }: { tab: Tab; onTab: (t: Tab) => voi
               className="tap"
               style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}
             >
-              <Icon
-                size={19}
-                color={active ? colors.accentGreen : colors.textFaint}
-                strokeWidth={active ? 2.4 : 2}
-                style={{ transition: "color 0.2s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)", transform: active ? "scale(1.08)" : "scale(1)" }}
-              />
+              <div
+                style={{
+                  width: 30,
+                  height: 22,
+                  borderRadius: 9,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: active ? glassBorder(colors.accentGreen, 0.16) : "transparent",
+                  transition: "background 0.2s ease",
+                }}
+              >
+                <Icon
+                  size={19}
+                  color={active ? colors.accentGreen : colors.textFaint}
+                  strokeWidth={active ? 2.4 : 2}
+                  style={{ transition: "color 0.2s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)", transform: active ? "scale(1.08)" : "scale(1)" }}
+                />
+              </div>
               <div
                 style={{
                   fontSize: 10,
