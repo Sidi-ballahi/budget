@@ -63,10 +63,9 @@ export function useAuth(settings: LocalSettings | undefined) {
     [settings, bump]
   );
 
-  const pressDigit = useCallback(
-    (d: string) => {
-      if (pinEntry.length >= 4) return;
-      const next = pinEntry + d;
+  const handlePinInput = useCallback(
+    (raw: string) => {
+      const next = raw.replace(/\D/g, "").slice(0, 4);
       setPinEntry(next);
       setPinError(false);
       if (next.length !== 4) return;
@@ -98,18 +97,13 @@ export function useAuth(settings: LocalSettings | undefined) {
         }
       }, 150);
     },
-    [pinEntry, mode, pendingNewPin, settings, finishCreate, bump]
+    [mode, pendingNewPin, settings, finishCreate, bump]
   );
-
-  const pressDelete = useCallback(() => {
-    setPinEntry((p) => p.slice(0, -1));
-    setPinError(false);
-  }, []);
 
   const lock = useCallback(() => {
     setIsLocked(true);
     setPinEntry("");
   }, []);
 
-  return { isLocked, mode, pinEntry, pinError, pressDigit, pressDelete, lock };
+  return { isLocked, mode, pinEntry, pinError, handlePinInput, lock };
 }

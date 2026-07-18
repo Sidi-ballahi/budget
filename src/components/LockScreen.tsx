@@ -1,52 +1,78 @@
 "use client";
 
-import { colors } from "@/lib/theme";
-
-const KEY_LABELS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del"];
+import { useEffect, useRef } from "react";
+import { colors, glow } from "@/lib/theme";
 
 export function LockScreen({
   mode,
   pinEntry,
   pinError,
-  onDigit,
-  onDelete,
+  onChange,
 }: {
   mode: "loading" | "create" | "confirm" | "enter";
   pinEntry: string;
   pinError: boolean;
-  onDigit: (d: string) => void;
-  onDelete: () => void;
+  onChange: (value: string) => void;
 }) {
+  const inputRef = useRef<HTMLInputElement>(null);
   const subtitle =
     mode === "create" ? "Créez votre code" : mode === "confirm" ? "Confirmez votre code" : "Entrez votre code";
 
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [mode]);
+
   return (
     <div
+      className="app-bg"
+      onClick={() => inputRef.current?.focus()}
       style={{
         height: "100%",
         minHeight: "100dvh",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "space-between",
+        justifyContent: "center",
+        gap: 64,
         boxSizing: "border-box",
         padding: `calc(env(safe-area-inset-top, 0px) + 56px) 24px calc(env(safe-area-inset-bottom, 0px) + 40px)`,
-        background: colors.bg,
       }}
     >
+      <input
+        ref={inputRef}
+        value={pinEntry}
+        onChange={(e) => onChange(e.target.value)}
+        type="tel"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        autoComplete="off"
+        autoFocus
+        maxLength={4}
+        aria-label="Code"
+        style={{
+          position: "absolute",
+          opacity: 0,
+          width: 1,
+          height: 1,
+          fontSize: 16,
+          border: "none",
+          outline: "none",
+        }}
+      />
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
         <div
           style={{
             width: 56,
             height: 56,
             borderRadius: 16,
-            background: colors.accentGold,
+            background: `linear-gradient(155deg, oklch(0.85 0.14 80), ${colors.accentGold})`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontSize: 26,
             fontWeight: 800,
             color: colors.neutralIcon,
+            boxShadow: `${glow(colors.accentGold, 0.5)}, inset 0 1px 0 oklch(1 0 0 / 0.5)`,
           }}
         >
           D
@@ -73,6 +99,8 @@ export function LockScreen({
                 height: 14,
                 borderRadius: "50%",
                 background: i < pinEntry.length ? colors.accentGreen : colors.white15,
+                boxShadow: i < pinEntry.length ? glow(colors.accentGreen, 0.6) : "none",
+                transition: "background 0.15s ease, box-shadow 0.15s ease",
               }}
             />
           ))}
@@ -80,42 +108,6 @@ export function LockScreen({
         <div style={{ fontSize: 13, color: colors.accentRed, height: 16 }}>
           {pinError ? "Code incorrect, réessayez" : ""}
         </div>
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 72px)",
-          gap: "18px 22px",
-          justifyContent: "center",
-        }}
-      >
-        {KEY_LABELS.map((label, i) => {
-          if (label === "") return <div key={i} style={{ width: 72, height: 72 }} />;
-          const isDel = label === "del";
-          return (
-            <div
-              key={i}
-              onClick={() => (isDel ? onDelete() : onDigit(label))}
-              style={{
-                width: 72,
-                height: 72,
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: isDel ? 20 : 26,
-                fontWeight: 600,
-                color: colors.textSecondary,
-                background: colors.white5,
-                cursor: "pointer",
-                userSelect: "none",
-              }}
-            >
-              {isDel ? "⌫" : label}
-            </div>
-          );
-        })}
       </div>
     </div>
   );
