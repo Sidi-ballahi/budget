@@ -24,7 +24,8 @@ export function LockScreen({
   const [canBiometric, setCanBiometric] = useState(false);
   const [biometricBusy, setBiometricBusy] = useState(false);
   const [biometricError, setBiometricError] = useState<string | null>(null);
-  const autoTriedRef = useRef(false);
+  const silentTriedRef = useRef(false);
+  const gestureTriedRef = useRef(false);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -50,20 +51,34 @@ export function LockScreen({
     else setBiometricError(result.error);
   }
 
-  // Auto-prompt once per lock screen appearance, like iOS apps do — the user
-  // can still tap the button below to retry if they dismiss the system sheet.
+  // Chrome/Android happily runs the ceremony with no prior tap, so try once
+  // silently on mount for those. Safari/iOS requires a real user gesture for
+  // WebAuthn and just rejects this immediately — swallow that quietly rather
+  // than flashing a confusing error the instant the lock screen appears.
   useEffect(() => {
-    if (canBiometric && !autoTriedRef.current) {
-      autoTriedRef.current = true;
-      void tryBiometric();
-    }
+    if (!canBiometric || silentTriedRef.current) return;
+    silentTriedRef.current = true;
+    authenticateWithPasskey().then((result) => {
+      if (result.ok) onUnlockBiometric();
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canBiometric]);
+
+  // Fallback for Safari/iOS: the first tap anywhere on the screen counts as a
+  // user gesture, so use it to fire the real (error-visible) attempt instead
+  // of making the user find and tap the fingerprint button specifically.
+  function handleScreenTap() {
+    inputRef.current?.focus();
+    if (canBiometric && !gestureTriedRef.current && !biometricBusy) {
+      gestureTriedRef.current = true;
+      void tryBiometric();
+    }
+  }
 
   return (
     <div
       className="app-bg"
-      onClick={() => inputRef.current?.focus()}
+      onClick={handleScreenTap}
       style={{
         height: "100%",
         minHeight: "100dvh",
@@ -153,6 +168,7 @@ export function LockScreen({
           <div
             onClick={(e) => {
               e.stopPropagation();
+              gestureTriedRef.current = true;
               void tryBiometric();
             }}
             className="tap glass"
