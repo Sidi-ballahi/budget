@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { addAccount, addAmi, addBudget, addContribution, addEcheance, addPret, addProjet, addTransaction, payerEcheance } from "@/lib/sync";
+import { checkAndNotify } from "@/lib/notifications";
 import { DashboardTab } from "./DashboardTab";
 import { AccountsTab } from "./AccountsTab";
 import { BudgetsTab } from "./BudgetsTab";
@@ -19,10 +20,12 @@ import { AddAmiSheet } from "./AddAmiSheet";
 import { AddPretSheet } from "./AddPretSheet";
 import { AddProjetSheet } from "./AddProjetSheet";
 import { AddContributionSheet } from "./AddContributionSheet";
+import { TransactionDetailSheet } from "./TransactionDetailSheet";
+import { SettingsSheet } from "./SettingsSheet";
 import { TabBar } from "./TabBar";
 import { Toast } from "./Toast";
 import type { AppData } from "@/hooks/useAppData";
-import type { ContributionSens, PretDirection, Tab } from "@/lib/types";
+import type { ContributionSens, PretDirection, Tab, Transaction } from "@/lib/types";
 
 export function MainApp({ data }: { data: AppData }) {
   const { accounts, categories, budgets, transactions, echeances, amis, prets, projets, contributions, trend } = data;
@@ -36,12 +39,18 @@ export function MainApp({ data }: { data: AppData }) {
   const [addAmiOpen, setAddAmiOpen] = useState(false);
   const [addPretDirection, setAddPretDirection] = useState<PretDirection | null>(null);
   const [openProjetId, setOpenProjetId] = useState<string | null>(null);
+  const [openTransaction, setOpenTransaction] = useState<Transaction | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [addProjetOpen, setAddProjetOpen] = useState(false);
   const [addContributionSens, setAddContributionSens] = useState<ContributionSens | null>(null);
   const [payingId, setPayingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const categoriesWithoutBudget = categories.filter((c) => c.type === "depense" && !budgets.some((b) => b.categorieId === c.id));
+
+  useEffect(() => {
+    checkAndNotify(echeances, budgets, categories);
+  }, [echeances, budgets, categories]);
 
   const openAccount = accounts.find((a) => a.id === openAccountId);
   const openAmi = amis.find((a) => a.id === openAmiId);
@@ -97,6 +106,8 @@ export function MainApp({ data }: { data: AppData }) {
             onOpenAccount={setOpenAccountId}
             onGoToBudgets={() => selectTab("budgets")}
             onGoToPlanned={() => selectTab("planned")}
+            onSelectTransaction={setOpenTransaction}
+            onOpenSettings={() => setSettingsOpen(true)}
           />
         )}
         {tab === "accounts" && (
@@ -106,6 +117,7 @@ export function MainApp({ data }: { data: AppData }) {
             transactions={transactions}
             onOpenAccount={setOpenAccountId}
             onAddAccount={() => setAddAccountOpen(true)}
+            onSelectTransaction={setOpenTransaction}
           />
         )}
         {tab === "budgets" && (
@@ -114,6 +126,7 @@ export function MainApp({ data }: { data: AppData }) {
             categories={categories}
             projets={projets}
             contributions={contributions}
+            transactions={transactions}
             onAddBudget={() => setAddBudgetOpen(true)}
             onAddProjet={() => setAddProjetOpen(true)}
             onOpenProjet={setOpenProjetId}
@@ -124,9 +137,22 @@ export function MainApp({ data }: { data: AppData }) {
             echeances={echeances}
             categories={categories}
             accounts={accounts}
+            transactions={transactions}
             onAdd={() => setAddEcheanceOpen(true)}
             onPay={(e) => handlePay(e.id)}
             payingId={payingId}
+            onAcceptSuggestion={async (candidate, prochaineDate) => {
+              await addEcheance({
+                nom: candidate.libelle,
+                type: candidate.type === "revenu" ? "revenu" : "depense",
+                montant: candidate.montantMoyen,
+                recurrence: "mensuel",
+                prochaineDate,
+                compteId: candidate.compteId,
+                categorieId: candidate.categorieId,
+              });
+              showToast("Échéance ajoutée");
+            }}
           />
         )}
         {tab === "friends" && (
@@ -147,6 +173,25 @@ export function MainApp({ data }: { data: AppData }) {
           categories={categories}
           transactions={transactions}
           onClose={() => setOpenAccountId(null)}
+          onSelectTransaction={setOpenTransaction}
+        />
+      )}
+
+      {openTransaction && (
+        <TransactionDetailSheet
+          tx={openTransaction}
+          categories={categories}
+          accounts={accounts}
+          onClose={() => setOpenTransaction(null)}
+        />
+      )}
+
+      {settingsOpen && (
+        <SettingsSheet
+          transactions={transactions}
+          categories={categories}
+          accounts={accounts}
+          onClose={() => setSettingsOpen(false)}
         />
       )}
 

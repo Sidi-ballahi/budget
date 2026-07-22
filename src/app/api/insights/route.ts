@@ -39,7 +39,7 @@ async function buildStatsJson(ref: Date) {
     })),
     budgets: budgets.map((b) => ({
       categorie: categories.find((c) => c.id === b.categorieId)?.nom ?? b.categorieId,
-      plafond: b.montantLimite,
+      plafond: b.limiteEffective,
       depense: b.spent,
     })),
     jourDuMois: ref.getDate(),

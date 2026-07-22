@@ -13,12 +13,12 @@ const PAGE_W = 210;
 const PAGE_H = 297;
 const ROW_H = 8;
 
-function money(n: number): string {
-  return `${fmtNum(n)} MRU`;
+function money(n: number, devise: string): string {
+  return `${fmtNum(n)} ${devise}`;
 }
 
-function signedMoney(n: number): string {
-  return `${n < 0 ? "-" : "+"}${fmtNum(n)} MRU`;
+function signedMoney(n: number, devise: string): string {
+  return `${n < 0 ? "-" : "+"}${fmtNum(n)} ${devise}`;
 }
 
 function txLabel(tx: Transaction): string {
@@ -63,10 +63,10 @@ export function buildRelevePdf(
   doc.setTextColor(30, 30, 30);
   doc.setFontSize(10);
   const summary: [string, string][] = [
-    ["Solde d'ouverture", money(releve.soldeOuverture)],
-    ["Entrées", `+${money(releve.entrees)}`],
-    ["Sorties", `-${money(releve.sorties)}`],
-    ["Solde de clôture", money(releve.soldeCloture)],
+    ["Solde d'ouverture", money(releve.soldeOuverture, account.devise)],
+    ["Entrées", `+${money(releve.entrees, account.devise)}`],
+    ["Sorties", `-${money(releve.sorties, account.devise)}`],
+    ["Solde de clôture", money(releve.soldeCloture, account.devise)],
   ];
   for (const [label, value] of summary) {
     const isLast = label === "Solde de clôture";
@@ -124,9 +124,9 @@ export function buildRelevePdf(
     doc.text(doc.splitTextToSize(catLabel(tx, categories), 38)[0], cols.cat, y);
     if (effect >= 0) doc.setTextColor(30, 120, 60);
     else doc.setTextColor(60, 60, 60);
-    doc.text(signedMoney(effect), cols.montant, y, { align: "right" });
+    doc.text(signedMoney(effect, account.devise), cols.montant, y, { align: "right" });
     doc.setTextColor(30, 30, 30);
-    doc.text(money(solde), cols.solde, y, { align: "right" });
+    doc.text(money(solde, account.devise), cols.solde, y, { align: "right" });
     y += 2.5;
     doc.setDrawColor(235, 235, 235);
     doc.line(MARGIN, y, PAGE_W - MARGIN, y);

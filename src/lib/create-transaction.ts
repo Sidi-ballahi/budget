@@ -17,6 +17,8 @@ export async function upsertTransactionByClientId(input: NewTransactionParsed): 
       compteDestinationId: input.compteDestinationId ?? null,
       categorieId: input.type === "transfert" ? null : input.categorieId ?? null,
       libelle: input.libelle ?? null,
+      tags: input.tags ?? [],
+      justificatif: input.justificatif ?? null,
       date: new Date(input.date),
       synced: true,
       creeHorsLigne: input.creeHorsLigne ?? false,

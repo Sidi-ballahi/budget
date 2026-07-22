@@ -6,6 +6,7 @@ export interface LocalBudget {
   categorieId: string;
   montantLimite: number;
   seuilAlerte: number;
+  reporter: boolean;
 }
 
 export interface LocalSettings extends Settings {
@@ -41,6 +42,9 @@ class DepensesDB extends Dexie {
     this.version(3).stores({
       projets: "id",
       contributions: "id, projetId, date",
+    });
+    this.version(4).stores({
+      transactions: "clientId, date, compteId, synced, *tags",
     });
   }
 }

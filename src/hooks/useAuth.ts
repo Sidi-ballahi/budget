@@ -105,5 +105,11 @@ export function useAuth(settings: LocalSettings | undefined) {
     setPinEntry("");
   }, []);
 
-  return { isLocked, mode, pinEntry, pinError, handlePinInput, lock };
+  const unlockBiometric = useCallback(() => {
+    setIsLocked(false);
+    setPinEntry("");
+    bump();
+  }, [bump]);
+
+  return { isLocked, mode, pinEntry, pinError, handlePinInput, lock, unlockBiometric };
 }

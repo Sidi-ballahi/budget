@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { serializeBudget } from "@/lib/serialize";
-import { newBudgetSchema } from "@/lib/validation";
+import { newBudgetSchema, updateBudgetSchema } from "@/lib/validation";
 
 export async function POST(req: NextRequest) {
   const json = await req.json();
@@ -14,5 +14,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Cette catégorie a déjà un budget" }, { status: 409 });
   }
   const row = await prisma.budget.create({ data: parsed.data });
+  return NextResponse.json({ budget: serializeBudget(row) });
+}
+
+export async function PATCH(req: NextRequest) {
+  const json = await req.json();
+  const parsed = updateBudgetSchema.safeParse(json);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+  const { id, ...data } = parsed.data;
+  const row = await prisma.budget.update({ where: { id }, data });
   return NextResponse.json({ budget: serializeBudget(row) });
 }

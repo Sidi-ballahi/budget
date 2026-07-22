@@ -106,6 +106,8 @@ model Transaction {
   categorieId        String?
   categorie          Category?         @relation(fields: [categorieId], references: [id], onDelete: SetNull)
   libelle            String?
+  tags               String[]          @default([])
+  justificatif       String?           @db.Text // base64 data URL of a compressed receipt photo
   date               DateTime          @default(now())
   synced             Boolean           @default(true)
   creeHorsLigne      Boolean           @default(false)
@@ -179,6 +181,7 @@ model Budget {
   montantLimite  Decimal      @db.Decimal(14, 2)
   seuilAlerte    Int          @default(80) // percent
   periode        BudgetPeriod @default(mensuel)
+  reporter       Boolean      @default(false) // carry unspent (or overspent) amount into next month's effective limit
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -227,6 +230,20 @@ model ProjetContribution {
   @@map("projet_contributions")
 }
 
+// WebAuthn platform authenticator (Face ID / Touch ID), optional alternative
+// unlock method to the PIN. Mono-user app: no userId needed, at most a
+// handful of rows (one per device the user registered a passkey on).
+model Passkey {
+  id           String   @id @default(uuid())
+  credentialId String   @unique
+  publicKey    Bytes
+  counter      BigInt   @default(0)
+  deviceName   String?
+  createdAt    DateTime @default(now())
+
+  @@map("passkeys")
+}
+
 // Single-row table: mono-user app, local PIN auth per section 4.1/7.2.
 model AppSettings {
   id              Int      @id @default(1)
@@ -235,6 +252,9 @@ model AppSettings {
   accentColor     String   @default("oklch(0.72 0.14 150)")
   aiSuggestions   Boolean  @default(true)
   autoLockMinutes Int      @default(2)
+  // Transient WebAuthn ceremony challenge (registration or authentication),
+  // cleared right after verification. Mono-user app, so one slot is enough.
+  webauthnChallenge String?
   updatedAt       DateTime @updatedAt
 
   @@map("app_settings")

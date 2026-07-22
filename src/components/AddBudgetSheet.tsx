@@ -17,6 +17,7 @@ export function AddBudgetSheet({
   const [categorieId, setCategorieId] = useState<string | null>(categories[0]?.id ?? null);
   const [montantLimite, setMontantLimite] = useState("");
   const [seuilAlerte, setSeuilAlerte] = useState("80");
+  const [reporter, setReporter] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,6 +32,7 @@ export function AddBudgetSheet({
         categorieId,
         montantLimite: parseFloat(montantLimite),
         seuilAlerte: seuilAlerte ? parseInt(seuilAlerte, 10) : 80,
+        reporter,
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Impossible de créer le budget");
@@ -139,6 +141,49 @@ export function AddBudgetSheet({
                 marginBottom: 22,
               }}
             />
+
+            <div
+              onClick={() => setReporter((v) => !v)}
+              className="tap glass"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                borderRadius: 14,
+                padding: "12px 14px",
+                marginBottom: 22,
+                cursor: "pointer",
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: colors.textSecondary, marginBottom: 2 }}>Reporter le reliquat</div>
+                <div style={{ fontSize: 11, color: colors.textFaint }}>Le solde non dépensé (ou le dépassement) se reporte sur le mois suivant</div>
+              </div>
+              <div
+                style={{
+                  width: 40,
+                  height: 24,
+                  borderRadius: 100,
+                  flexShrink: 0,
+                  background: reporter ? colors.accentGreen : colors.white15,
+                  position: "relative",
+                  transition: "background 0.2s ease",
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 3,
+                    left: reporter ? 19 : 3,
+                    width: 18,
+                    height: 18,
+                    borderRadius: "50%",
+                    background: colors.textPrimary,
+                    transition: "left 0.2s cubic-bezier(0.32,0.72,0,1)",
+                  }}
+                />
+              </div>
+            </div>
 
             {error && <div style={{ fontSize: 12, color: colors.accentRed, marginBottom: 12 }}>{error}</div>}
 

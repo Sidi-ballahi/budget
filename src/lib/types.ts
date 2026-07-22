@@ -34,6 +34,8 @@ export interface Transaction {
   montant: number;
   categorieId: string | null;
   libelle: string | null;
+  tags: string[];
+  justificatif: string | null; // base64 data URL of a compressed receipt photo
   date: string; // ISO
   synced: boolean;
   creeHorsLigne: boolean;
@@ -45,7 +47,9 @@ export interface BudgetProgress {
   categorieId: string;
   montantLimite: number;
   seuilAlerte: number;
+  reporter: boolean;
   spent: number;
+  limiteEffective: number; // montantLimite, adjusted by the previous month's reliquat when reporter is on
 }
 
 export interface Echeance {
@@ -138,6 +142,8 @@ export interface NewTransactionInput {
   compteDestinationId?: string | null;
   categorieId?: string | null;
   libelle?: string | null;
+  tags?: string[];
+  justificatif?: string | null;
   date: string;
   creeHorsLigne?: boolean;
 }
@@ -154,6 +160,7 @@ export interface NewBudgetInput {
   categorieId: string;
   montantLimite: number;
   seuilAlerte?: number;
+  reporter?: boolean;
 }
 
 export interface NewCategoryInput {

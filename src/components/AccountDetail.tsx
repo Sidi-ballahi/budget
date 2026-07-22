@@ -20,12 +20,14 @@ export function AccountDetail({
   categories,
   transactions,
   onClose,
+  onSelectTransaction,
 }: {
   account: Account;
   accounts: Account[];
   categories: Category[];
   transactions: Transaction[];
   onClose: () => void;
+  onSelectTransaction: (tx: Transaction) => void;
 }) {
   const now = new Date();
   const [period, setPeriod] = useState({ year: now.getFullYear(), month: now.getMonth() });
@@ -84,7 +86,7 @@ export function AccountDetail({
       </div>
       <div className="glass" style={{ background: glassTint(account.couleur, 0.22), borderColor: glassBorder(account.couleur), borderRadius: 20, padding: 18, marginBottom: 20 }}>
         <div style={{ fontSize: 12.5, color: colors.textMuted, marginBottom: 6 }}>Solde du compte</div>
-        <div style={{ fontSize: 26, fontWeight: 800, color: colors.textPrimary }}>{fmtMoney(account.solde, false).replace("-", "")}</div>
+        <div style={{ fontSize: 26, fontWeight: 800, color: colors.textPrimary }}>{fmtMoney(account.solde, false, account.devise).replace("-", "")}</div>
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
@@ -108,20 +110,20 @@ export function AccountDetail({
       <div className="glass" style={{ borderRadius: 20, padding: 16, marginBottom: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: colors.textMuted, padding: "6px 0" }}>
           <div>Solde d&apos;ouverture</div>
-          <div style={{ color: colors.textSecondary, fontWeight: 600 }}>{fmtMoney(releve.soldeOuverture, false)}</div>
+          <div style={{ color: colors.textSecondary, fontWeight: 600 }}>{fmtMoney(releve.soldeOuverture, false, account.devise)}</div>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: colors.textMuted, padding: "6px 0" }}>
           <div>Entrées</div>
-          <div style={{ color: colors.accentGreen, fontWeight: 600 }}>+{fmtNum(releve.entrees)} MRU</div>
+          <div style={{ color: colors.accentGreen, fontWeight: 600 }}>+{fmtNum(releve.entrees)} {account.devise}</div>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: colors.textMuted, padding: "6px 0" }}>
           <div>Sorties</div>
-          <div style={{ color: colors.accentRed, fontWeight: 600 }}>-{fmtNum(releve.sorties)} MRU</div>
+          <div style={{ color: colors.accentRed, fontWeight: 600 }}>-{fmtNum(releve.sorties)} {account.devise}</div>
         </div>
         <div style={{ height: 1, background: colors.white8, margin: "8px 0" }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: colors.textSecondary }}>Solde de clôture</div>
-          <div style={{ fontSize: 16, fontWeight: 800, color: colors.textPrimary }}>{fmtMoney(releve.soldeCloture, false)}</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: colors.textPrimary }}>{fmtMoney(releve.soldeCloture, false, account.devise)}</div>
         </div>
         <div
           onClick={() => downloadRelevePdf(account, releve, categories, period.year, period.month)}
@@ -150,7 +152,7 @@ export function AccountDetail({
         Transactions de {MONTHS_FR[period.month]}
       </div>
       {releve.transactions.length ? (
-        <TransactionList transactions={releve.transactions} categories={categories} accounts={accounts} />
+        <TransactionList transactions={releve.transactions} categories={categories} accounts={accounts} onSelect={onSelectTransaction} />
       ) : (
         <div style={{ fontSize: 12.5, color: colors.textFaint }}>Aucune transaction ce mois-ci sur ce compte.</div>
       )}

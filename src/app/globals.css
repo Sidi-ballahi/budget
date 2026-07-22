@@ -1,3 +1,19 @@
+:root {
+  --surface-base: oklch(0.12 0.014 260);
+  --sheet-grad-1: oklch(0.28 0.035 260 / 0.78);
+  --sheet-grad-2: oklch(0.15 0.02 260 / 0.93);
+  --bar-grad-1: oklch(0.26 0.035 260 / 0.55);
+  --bar-grad-2: oklch(0.14 0.02 260 / 0.84);
+}
+
+:root[data-theme="light"] {
+  --surface-base: oklch(0.96 0.012 260);
+  --sheet-grad-1: oklch(0.99 0.006 260 / 0.85);
+  --sheet-grad-2: oklch(0.93 0.012 260 / 0.92);
+  --bar-grad-1: oklch(0.98 0.006 260 / 0.7);
+  --bar-grad-2: oklch(0.92 0.012 260 / 0.85);
+}
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -10,7 +26,7 @@ body {
 
 body {
   margin: 0;
-  background: oklch(0.12 0.014 260);
+  background: var(--surface-base);
   font-family: var(--font-manrope), "Manrope", sans-serif;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
@@ -26,7 +42,7 @@ body {
     radial-gradient(760px 760px at 96% 55%, oklch(0.6 0.19 300 / 0.24), transparent 58%),
     radial-gradient(820px 720px at -6% 96%, oklch(0.74 0.15 80 / 0.26), transparent 58%),
     radial-gradient(640px 640px at 55% 108%, oklch(0.62 0.18 25 / 0.18), transparent 55%),
-    oklch(0.12 0.014 260);
+    var(--surface-base);
 }
 
 /* iOS 26 "Liquid Glass": frosted, saturating blur + specular top edge.
@@ -45,7 +61,7 @@ body {
 }
 
 .glass-sheet {
-  background: linear-gradient(180deg, oklch(0.28 0.035 260 / 0.78), oklch(0.15 0.02 260 / 0.93));
+  background: linear-gradient(180deg, var(--sheet-grad-1), var(--sheet-grad-2));
   -webkit-backdrop-filter: blur(40px) saturate(190%);
   backdrop-filter: blur(40px) saturate(190%);
   border-top: 1px solid oklch(1 0 0 / 0.16);
@@ -53,7 +69,7 @@ body {
 }
 
 .glass-bar {
-  background: linear-gradient(180deg, oklch(0.26 0.035 260 / 0.55), oklch(0.14 0.02 260 / 0.84));
+  background: linear-gradient(180deg, var(--bar-grad-1), var(--bar-grad-2));
   -webkit-backdrop-filter: blur(30px) saturate(200%);
   backdrop-filter: blur(30px) saturate(200%);
   border-top: 1px solid oklch(1 0 0 / 0.14);

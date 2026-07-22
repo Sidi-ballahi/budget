@@ -60,6 +60,8 @@ export function serializeTransaction(row: PTransaction): Transaction {
     montant: dec(row.montant),
     categorieId: row.categorieId,
     libelle: row.libelle,
+    tags: row.tags,
+    justificatif: row.justificatif,
     date: row.date.toISOString(),
     synced: row.synced,
     creeHorsLigne: row.creeHorsLigne,
@@ -67,12 +69,13 @@ export function serializeTransaction(row: PTransaction): Transaction {
   };
 }
 
-export function serializeBudget(row: PBudget): Omit<BudgetProgress, "spent"> {
+export function serializeBudget(row: PBudget): Omit<BudgetProgress, "spent" | "limiteEffective"> {
   return {
     id: row.id,
     categorieId: row.categorieId,
     montantLimite: dec(row.montantLimite),
     seuilAlerte: row.seuilAlerte,
+    reporter: row.reporter,
   };
 }
 

@@ -5,9 +5,18 @@ export function fmtNum(n: number): string {
   return Math.round(Math.abs(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
-export function fmtMoney(n: number, showSign: boolean): string {
+export function fmtMoney(n: number, showSign: boolean, devise = "MRU"): string {
   const sign = n < 0 ? "-" : showSign ? "+" : "";
-  return `${sign}${fmtNum(n)} MRU`;
+  return `${sign}${fmtNum(n)} ${devise}`;
+}
+
+// The dashboard aggregates balances across every account. That only makes
+// sense as a single currency figure when every account actually shares one;
+// otherwise callers should show a "devises mixtes" hint instead of a total.
+export function commonDevise(accounts: { devise: string }[]): string | null {
+  if (accounts.length === 0) return "MRU";
+  const first = accounts[0].devise;
+  return accounts.every((a) => a.devise === first) ? first : null;
 }
 
 export function catById(categories: Category[], id: string | null): Category {
@@ -41,7 +50,7 @@ export function presentTx(tx: Transaction, categories: Category[], accounts: Acc
     initial: tx.type === "transfert" ? "⇄" : cat.nom[0],
     catColor: tx.type === "transfert" ? "oklch(0.7 0.02 70)" : cat.couleur,
     subtitle: (acc ? acc.nom : "") + " · " + shortDate(tx.date),
-    amountFmt: fmtMoney(tx.type === "transfert" ? -tx.montant : tx.type === "revenu" ? tx.montant : -tx.montant, tx.type === "revenu"),
+    amountFmt: fmtMoney(tx.type === "transfert" ? -tx.montant : tx.type === "revenu" ? tx.montant : -tx.montant, tx.type === "revenu", acc?.devise),
     amountColor: tx.type === "revenu" ? colors.accentGreen : colors.textSecondary,
     syncColor: tx.synced ? colors.accentGreen : colors.accentGold,
   };

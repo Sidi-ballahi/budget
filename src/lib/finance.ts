@@ -1,4 +1,4 @@
-import type { Account, BudgetProgress, Category, PretMouvement, Projet, ProjetContribution, Transaction, TrendPoint } from "./types";
+import type { Account, BudgetProgress, Category, PretMouvement, Projet, ProjetContribution, Transaction, TransactionType, TrendPoint } from "./types";
 
 const MONTH_LABELS_FR = [
   "Jan", "Fev", "Mar", "Avr", "Mai", "Jun",
@@ -43,14 +43,55 @@ export function computeBudgetSpent(categorieId: string, transactions: Transactio
     .reduce((s, t) => s + t.montant, 0);
 }
 
+// When `reporter` is on, last month's unspent (or overspent) amount shifts
+// this month's effective limit up or down. Uncapped below 0: a bad month
+// can still eat into the following one, which is the point of an envelope.
+function previousMonthReliquat(
+  b: { categorieId: string; montantLimite: number; reporter: boolean },
+  transactions: Transaction[],
+  ref: Date
+): number {
+  if (!b.reporter) return 0;
+  const prevRef = new Date(ref.getFullYear(), ref.getMonth() - 1, 1);
+  const prevSpent = computeBudgetSpent(b.categorieId, transactions, prevRef);
+  return b.montantLimite - prevSpent;
+}
+
+export interface BudgetHistoryPoint {
+  label: string;
+  spent: number;
+  limite: number;
+}
+
+// Spent-vs-limit for the last `monthsBack` months (including the current
+// one), oldest first — used for the per-category history view in BudgetsTab.
+export function computeBudgetHistory(
+  b: { categorieId: string; montantLimite: number },
+  transactions: Transaction[],
+  monthsBack = 6,
+  ref: Date = new Date()
+): BudgetHistoryPoint[] {
+  const points: BudgetHistoryPoint[] = [];
+  for (let i = monthsBack - 1; i >= 0; i--) {
+    const monthRef = new Date(ref.getFullYear(), ref.getMonth() - i, 1);
+    points.push({
+      label: MONTH_LABELS_FR[monthRef.getMonth()],
+      spent: computeBudgetSpent(b.categorieId, transactions, monthRef),
+      limite: b.montantLimite,
+    });
+  }
+  return points;
+}
+
 export function computeBudgetProgress(
-  budgets: { id: string; categorieId: string; montantLimite: number; seuilAlerte: number }[],
+  budgets: { id: string; categorieId: string; montantLimite: number; seuilAlerte: number; reporter: boolean }[],
   transactions: Transaction[],
   ref: Date = new Date()
 ): BudgetProgress[] {
   return budgets.map((b) => ({
     ...b,
     spent: computeBudgetSpent(b.categorieId, transactions, ref),
+    limiteEffective: b.montantLimite + previousMonthReliquat(b, transactions, ref),
   }));
 }
 
@@ -233,8 +274,8 @@ export function computeLocalSummary(
 ): string {
   const monthDepenses = transactions.filter((t) => t.type === "depense" && isSameMonth(t.date, ref));
   const total = monthDepenses.reduce((s, t) => s + t.montant, 0);
-  const over = budgets.filter((b) => b.montantLimite && b.spent / b.montantLimite >= 1);
-  const near = budgets.filter((b) => b.montantLimite && b.spent / b.montantLimite >= 0.8 && b.spent / b.montantLimite < 1);
+  const over = budgets.filter((b) => b.limiteEffective && b.spent / b.limiteEffective >= 1);
+  const near = budgets.filter((b) => b.limiteEffective && b.spent / b.limiteEffective >= 0.8 && b.spent / b.limiteEffective < 1);
   const catName = (id: string) => categories.find((c) => c.id === id)?.nom ?? id;
   const parts = [`Ce mois-ci, vos dépenses s'élèvent à ${fmtMRU(total)}.`];
   if (over.length) parts.push(`Le budget ${over.map((b) => catName(b.categorieId)).join(", ")} est dépassé.`);
@@ -252,10 +293,10 @@ export function computeLocalAnomalies(
   const anomalies: { title: string; detail: string }[] = [];
   const catName = (id: string) => categories.find((c) => c.id === id)?.nom ?? id;
   for (const b of budgets) {
-    if (b.montantLimite && b.spent > b.montantLimite) {
+    if (b.limiteEffective && b.spent > b.limiteEffective) {
       anomalies.push({
         title: `${catName(b.categorieId)} dépasse le budget`,
-        detail: `La dépense ${catName(b.categorieId)} de ${fmtMRU(b.spent)} dépasse le plafond mensuel de ${fmtMRU(b.montantLimite)}.`,
+        detail: `La dépense ${catName(b.categorieId)} de ${fmtMRU(b.spent)} dépasse le plafond mensuel de ${fmtMRU(b.limiteEffective)}.`,
       });
     }
   }
@@ -279,6 +320,78 @@ export function computeLocalAnomalies(
   return anomalies.slice(0, 4);
 }
 
+export interface RecurringCandidate {
+  key: string; // categorieId + normalized libelle, used as a stable suggestion id
+  libelle: string;
+  categorieId: string | null;
+  type: TransactionType;
+  compteId: string;
+  montantMoyen: number;
+  occurrences: number;
+  dernierJour: number; // day-of-month of the most recent occurrence, used as the suggested prochaineDate
+}
+
+function normalizeLabel(label: string): string {
+  return label.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
+// Groups past expenses/income by (categorie, libelle) and flags groups that
+// look like a recurring monthly charge: at least 3 occurrences, spread over
+// 3+ distinct months in the last 6, with a fairly stable amount. Skips
+// transfers and unlabeled transactions (nothing to name the echeance after).
+export function detectRecurringCandidates(
+  transactions: Transaction[],
+  existingEcheances: { categorieId: string | null; nom: string }[],
+  ref: Date = new Date()
+): RecurringCandidate[] {
+  const cutoff = new Date(ref.getFullYear(), ref.getMonth() - 5, 1).getTime();
+  const groups = new Map<string, Transaction[]>();
+
+  for (const t of transactions) {
+    if (t.type === "transfert" || !t.libelle?.trim()) continue;
+    if (new Date(t.date).getTime() < cutoff) continue;
+    const key = `${t.categorieId ?? "none"}::${normalizeLabel(t.libelle)}`;
+    groups.set(key, [...(groups.get(key) ?? []), t]);
+  }
+
+  const existingKeys = new Set(
+    existingEcheances.map((e) => `${e.categorieId ?? "none"}::${normalizeLabel(e.nom)}`)
+  );
+
+  const candidates: RecurringCandidate[] = [];
+  for (const [key, group] of groups) {
+    if (existingKeys.has(key)) continue;
+    if (group.length < 3) continue;
+    const distinctMonths = new Set(group.map((t) => monthKey(new Date(t.date))));
+    if (distinctMonths.size < 3) continue;
+
+    const amounts = group.map((t) => t.montant);
+    const avg = amounts.reduce((s, a) => s + a, 0) / amounts.length;
+    if (avg <= 0) continue;
+    const maxDeviation = Math.max(...amounts.map((a) => Math.abs(a - avg) / avg));
+    if (maxDeviation > 0.15) continue;
+
+    const sorted = [...group].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const latest = sorted[0];
+    const accountCounts = new Map<string, number>();
+    for (const t of group) accountCounts.set(t.compteId, (accountCounts.get(t.compteId) ?? 0) + 1);
+    const compteId = [...accountCounts.entries()].sort((a, b) => b[1] - a[1])[0][0];
+
+    candidates.push({
+      key,
+      libelle: latest.libelle!.trim(),
+      categorieId: latest.categorieId,
+      type: latest.type,
+      compteId,
+      montantMoyen: Math.round(avg),
+      occurrences: group.length,
+      dernierJour: new Date(latest.date).getDate(),
+    });
+  }
+
+  return candidates.sort((a, b) => b.occurrences - a.occurrences);
+}
+
 export function computeLocalForecast(
   accounts: { id: string; soldeInitial: number }[],
   budgets: BudgetProgress[],
@@ -294,7 +407,7 @@ export function computeLocalForecast(
   const dailyRate = dayOfMonth > 0 ? monthDepenses / dayOfMonth : 0;
   const projectedRemaining = dailyRate * (daysInMonth - dayOfMonth);
   const projectedBalance = globalBalance - projectedRemaining;
-  const overBudgets = budgets.filter((b) => b.montantLimite && b.spent / b.montantLimite >= 0.8);
+  const overBudgets = budgets.filter((b) => b.limiteEffective && b.spent / b.limiteEffective >= 0.8);
   const advice = overBudgets.length
     ? `Réduire les dépenses restantes sur ${overBudgets.length > 1 ? "ces catégories" : "cette catégorie"} proche(s) du plafond permettrait de préserver votre solde.`
     : "Votre rythme de dépenses actuel est soutenable pour le reste du mois.";

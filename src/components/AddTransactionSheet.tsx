@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Plus, Tag } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Camera, Plus, Tag, X } from "lucide-react";
 import { colors, glassBorder, glassTint, glow } from "@/lib/theme";
 import { fmtNum, todayLong } from "@/lib/present";
 import { suggestCategoryLocal } from "@/lib/finance";
 import { addCategory } from "@/lib/sync";
+import { compressImageFile } from "@/lib/image";
 import { AddCategorySheet } from "./AddCategorySheet";
 import type { Account, Category, NewTransactionInput, TransactionType } from "@/lib/types";
 
@@ -33,8 +34,31 @@ export function AddTransactionSheet({
   const [destAccountId, setDestAccountId] = useState<string | null>(null);
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [label, setLabel] = useState("");
+  const [tagInput, setTagInput] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [aiSuggestion, setAiSuggestion] = useState<{ label: string; categoryId: string } | null>(null);
   const [addCategoryOpen, setAddCategoryOpen] = useState(false);
+
+  function addTag() {
+    const t = tagInput.trim().slice(0, 30);
+    if (t && !tags.includes(t) && tags.length < 10) setTags((prev) => [...prev, t]);
+    setTagInput("");
+  }
+
+  async function handlePhotoPick(file: File | null) {
+    if (!file) return;
+    setPhotoBusy(true);
+    try {
+      setPhoto(await compressImageFile(file));
+    } catch {
+      // ignore: photo is optional, a bad file just gets dropped
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
 
   const isTransfert = type === "transfert";
   const amountNum = amount ? parseFloat(amount) : 0;
@@ -88,12 +112,15 @@ export function AddTransactionSheet({
       compteDestinationId: isTransfert ? destAccountId : null,
       categorieId: isTransfert ? null : effectiveCategoryId ?? categoriesForType[0]?.id ?? null,
       libelle: label || null,
+      tags,
+      justificatif: photo,
       date: new Date().toISOString(),
       creeHorsLigne: typeof navigator !== "undefined" && !navigator.onLine,
     });
   }
 
-  const accountName = accounts.find((a) => a.id === accountId)?.nom ?? "—";
+  const selectedAccount = accounts.find((a) => a.id === accountId);
+  const accountName = selectedAccount?.nom ?? "—";
   const destAccountName = accounts.find((a) => a.id === destAccountId)?.nom ?? "—";
   const categoryName = effectiveCategoryId ? categories.find((c) => c.id === effectiveCategoryId)?.nom ?? "—" : "—";
   const typeLabel = { depense: "Dépense", revenu: "Revenu", transfert: "Transfert" }[type];
@@ -233,6 +260,85 @@ export function AddTransactionSheet({
                 }}
               />
 
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: colors.textMuted, marginBottom: 8 }}>TAGS (optionnel)</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
+                {tags.map((t) => (
+                  <span
+                    key={t}
+                    style={{ display: "flex", alignItems: "center", gap: 4, background: colors.white8, color: colors.textSecondary, borderRadius: 100, padding: "5px 6px 5px 12px", fontSize: 12 }}
+                  >
+                    {t}
+                    <X size={12} style={{ cursor: "pointer" }} onClick={() => setTags((prev) => prev.filter((x) => x !== t))} />
+                  </span>
+                ))}
+              </div>
+              <input
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === ",") {
+                    e.preventDefault();
+                    addTag();
+                  }
+                }}
+                onBlur={addTag}
+                placeholder="ex : remboursable, voyage… (Entrée pour ajouter)"
+                className="glass-input"
+                style={{
+                  width: "100%",
+                  boxSizing: "border-box",
+                  borderRadius: 12,
+                  padding: "12px 14px",
+                  color: colors.textSecondary,
+                  fontSize: 14,
+                  fontFamily: "inherit",
+                  marginBottom: 18,
+                }}
+              />
+
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: colors.textMuted, marginBottom: 8 }}>JUSTIFICATIF (optionnel)</div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                style={{ display: "none" }}
+                onChange={(e) => handlePhotoPick(e.target.files?.[0] ?? null)}
+              />
+              {photo ? (
+                <div style={{ position: "relative", marginBottom: 18 }}>
+                  <img src={photo} alt="Justificatif" style={{ width: "100%", maxHeight: 160, objectFit: "cover", borderRadius: 12 }} />
+                  <div
+                    onClick={() => setPhoto(null)}
+                    className="tap glass"
+                    style={{ position: "absolute", top: 8, right: 8, width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                  >
+                    <X size={13} color={colors.textPrimary} />
+                  </div>
+                </div>
+              ) : (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="tap"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    padding: 14,
+                    borderRadius: 12,
+                    marginBottom: 18,
+                    border: `1px dashed ${colors.white15}`,
+                    color: colors.textFaint,
+                    fontSize: 12.5,
+                    cursor: "pointer",
+                  }}
+                >
+                  <Camera size={15} />
+                  {photoBusy ? "Traitement…" : "Ajouter une photo du reçu"}
+                </div>
+              )}
+
               <div style={{ fontSize: 12.5, fontWeight: 700, color: colors.textMuted, marginBottom: 8 }}>COMPTE</div>
               <div style={{ display: "flex", gap: 8, overflowX: "auto", marginBottom: 18 }}>
                 {accounts.map((acc) => (
@@ -371,10 +477,12 @@ export function AddTransactionSheet({
               <div style={{ fontSize: 12.5, fontWeight: 700, color: colors.textMuted, marginBottom: 12 }}>RÉCAPITULATIF</div>
               <div className="glass" style={{ borderRadius: 18, padding: 18, marginBottom: 20, display: "flex", flexDirection: "column", gap: 12 }}>
                 <Row label="Type" value={typeLabel} strong />
-                <Row label="Montant" value={fmtNum(amountNum) + " MRU"} big />
+                <Row label="Montant" value={fmtNum(amountNum) + " " + (selectedAccount?.devise ?? "MRU")} big />
                 <Row label="Compte" value={accountName} strong />
                 {isTransfert ? <Row label="Vers" value={destAccountName} strong /> : <Row label="Catégorie" value={categoryName} strong />}
                 <Row label="Libellé" value={label || "—"} strong />
+                {tags.length > 0 && <Row label="Tags" value={tags.join(", ")} strong />}
+                {photo && <Row label="Justificatif" value="Photo ajoutée" strong />}
                 <Row label="Date" value={todayLong()} strong />
               </div>
               <div style={{ display: "flex", gap: 10 }}>

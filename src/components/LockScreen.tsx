@@ -1,26 +1,53 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Fingerprint } from "lucide-react";
 import { colors, glow } from "@/lib/theme";
+import { authenticateWithPasskey, browserSupportsWebAuthn, hasRegisteredPasskey } from "@/lib/webauthn";
 
 export function LockScreen({
   mode,
   pinEntry,
   pinError,
   onChange,
+  onUnlockBiometric,
 }: {
   mode: "loading" | "create" | "confirm" | "enter";
   pinEntry: string;
   pinError: boolean;
   onChange: (value: string) => void;
+  onUnlockBiometric: () => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const subtitle =
     mode === "create" ? "Créez votre code" : mode === "confirm" ? "Confirmez votre code" : "Entrez votre code";
+  const [canBiometric, setCanBiometric] = useState(false);
+  const [biometricBusy, setBiometricBusy] = useState(false);
+  const [biometricError, setBiometricError] = useState<string | null>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, [mode]);
+
+  useEffect(() => {
+    if (mode !== "enter" || !browserSupportsWebAuthn()) return;
+    let cancelled = false;
+    hasRegisteredPasskey().then((has) => {
+      if (!cancelled) setCanBiometric(has);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [mode]);
+
+  async function tryBiometric() {
+    setBiometricBusy(true);
+    setBiometricError(null);
+    const result = await authenticateWithPasskey();
+    setBiometricBusy(false);
+    if (result.ok) onUnlockBiometric();
+    else setBiometricError(result.error);
+  }
 
   return (
     <div
@@ -109,6 +136,34 @@ export function LockScreen({
           {pinError ? "Code incorrect, réessayez" : ""}
         </div>
       </div>
+
+      {canBiometric && (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              void tryBiometric();
+            }}
+            className="tap glass"
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: colors.accentGreen,
+              cursor: "pointer",
+            }}
+          >
+            <Fingerprint size={24} />
+          </div>
+          <div style={{ fontSize: 12, color: colors.textFaint }}>
+            {biometricBusy ? "Vérification…" : "Déverrouiller avec Face ID / Touch ID"}
+          </div>
+          {biometricError && <div style={{ fontSize: 11.5, color: colors.accentRed }}>{biometricError}</div>}
+        </div>
+      )}
     </div>
   );
 }

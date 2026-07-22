@@ -1,8 +1,8 @@
 "use client";
 
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, Settings as SettingsIcon } from "lucide-react";
 import { colors, glassBorder, glassTint, glow } from "@/lib/theme";
-import { fmtMoney, fmtNum, shortDate } from "@/lib/present";
+import { commonDevise, fmtMoney, fmtNum, shortDate } from "@/lib/present";
 import { computeCategoryBreakdown, totalReserveProjets } from "@/lib/finance";
 import { TransactionList } from "./TransactionRow";
 import type { Account, BudgetProgress, Category, Echeance, Projet, ProjetContribution, Transaction } from "@/lib/types";
@@ -19,6 +19,8 @@ export function DashboardTab({
   onOpenAccount,
   onGoToBudgets,
   onGoToPlanned,
+  onSelectTransaction,
+  onOpenSettings,
 }: {
   accounts: Account[];
   categories: Category[];
@@ -31,8 +33,12 @@ export function DashboardTab({
   onOpenAccount: (id: string) => void;
   onGoToBudgets: () => void;
   onGoToPlanned: () => void;
+  onSelectTransaction: (tx: Transaction) => void;
+  onOpenSettings: () => void;
 }) {
   const globalBalance = accounts.reduce((s, a) => s + a.solde, 0);
+  const devise = commonDevise(accounts) ?? "MRU";
+  const hasMixedDevises = accounts.length > 0 && commonDevise(accounts) === null;
   const hasUnsynced = transactions.some((t) => !t.synced);
   const reserve = totalReserveProjets(projets, contributions);
   const disponible = globalBalance - reserve;
@@ -44,7 +50,7 @@ export function DashboardTab({
     .slice(0, 4);
   const upcomingTotal = upcoming.filter((e) => e.type === "depense").reduce((s, e) => s + e.montant, 0);
 
-  const overBudgets = budgets.filter((b) => b.montantLimite && b.spent / b.montantLimite >= 0.8);
+  const overBudgets = budgets.filter((b) => b.limiteEffective && b.spent / b.limiteEffective >= 0.8);
   const alertsMsg = overBudgets.length
     ? `${overBudgets.length} catégorie${overBudgets.length > 1 ? "s" : ""} proche${
         overBudgets.length > 1 ? "s" : ""
@@ -74,27 +80,35 @@ export function DashboardTab({
           <div style={{ fontSize: 13, color: colors.textMuted }}>Bonjour, Sidi</div>
           <div style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary }}>Tableau de bord</div>
         </div>
-        <div
-          className="glass"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            borderRadius: 100,
-            padding: "6px 12px",
-            marginTop: 4,
-          }}
-        >
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
           <div
+            className="glass"
             style={{
-              width: 7,
-              height: 7,
-              borderRadius: "50%",
-              background: hasUnsynced ? colors.accentGold : colors.accentGreen,
-              boxShadow: glow(hasUnsynced ? colors.accentGold : colors.accentGreen, 0.7),
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              borderRadius: 100,
+              padding: "6px 12px",
             }}
-          />
-          <div style={{ fontSize: 11, color: colors.textMuted }}>{hasUnsynced ? "En attente" : "À jour"}</div>
+          >
+            <div
+              style={{
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                background: hasUnsynced ? colors.accentGold : colors.accentGreen,
+                boxShadow: glow(hasUnsynced ? colors.accentGold : colors.accentGreen, 0.7),
+              }}
+            />
+            <div style={{ fontSize: 11, color: colors.textMuted }}>{hasUnsynced ? "En attente" : "À jour"}</div>
+          </div>
+          <div
+            onClick={onOpenSettings}
+            className="tap glass"
+            style={{ width: 30, height: 30, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: colors.textMuted, cursor: "pointer" }}
+          >
+            <SettingsIcon size={14} />
+          </div>
         </div>
       </div>
 
@@ -107,19 +121,22 @@ export function DashboardTab({
           marginBottom: 16,
         }}
       >
-        <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 6 }}>Solde global</div>
+        <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 6 }}>
+          Solde global
+          {hasMixedDevises && <span style={{ color: colors.textFaint }}> (devises mixtes)</span>}
+        </div>
         <div style={{ fontSize: 32, fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.5 }}>
-          {fmtMoney(globalBalance, false)}
+          {fmtMoney(globalBalance, false, devise)}
         </div>
         {reserve > 0 && (
           <div style={{ display: "flex", gap: 16, marginTop: 10, paddingTop: 10, borderTop: `1px solid ${colors.white6}` }}>
             <div>
               <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 3 }}>Réservé projets</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: colors.accentGold }}>{fmtNum(reserve)} MRU</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: colors.accentGold }}>{fmtNum(reserve)} {devise}</div>
             </div>
             <div>
               <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 3 }}>Disponible</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: colors.accentGreen }}>{fmtMoney(disponible, false)}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: colors.accentGreen }}>{fmtMoney(disponible, false, devise)}</div>
             </div>
           </div>
         )}
@@ -196,7 +213,7 @@ export function DashboardTab({
           >
             <div style={{ width: 10, height: 10, borderRadius: 3, background: acc.couleur, marginBottom: 20, boxShadow: glow(acc.couleur, 0.6) }} />
             <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 4 }}>{acc.nom}</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: colors.textPrimary }}>{fmtMoney(acc.solde, false).replace("-", "")}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: colors.textPrimary }}>{fmtMoney(acc.solde, false, acc.devise).replace("-", "")}</div>
           </div>
         ))}
       </div>
@@ -259,7 +276,7 @@ export function DashboardTab({
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>Transactions récentes</div>
       </div>
-      <TransactionList transactions={transactions.slice(0, 5)} categories={categories} accounts={accounts} />
+      <TransactionList transactions={transactions.slice(0, 5)} categories={categories} accounts={accounts} onSelect={onSelectTransaction} />
     </div>
   );
 }

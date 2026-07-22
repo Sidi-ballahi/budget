@@ -38,6 +38,7 @@ export async function hydrateFromServer(): Promise<Bootstrap | null> {
         categorieId: b.categorieId,
         montantLimite: b.montantLimite,
         seuilAlerte: b.seuilAlerte,
+        reporter: b.reporter,
       }));
       await db.budgets.bulkPut(budgets);
       // Server is the source of truth for these (no offline queue): replace.
@@ -75,6 +76,8 @@ export async function addTransaction(input: NewTransactionInput): Promise<Transa
     montant: input.montant,
     categorieId: input.categorieId ?? null,
     libelle: input.libelle ?? null,
+    tags: input.tags ?? [],
+    justificatif: input.justificatif ?? null,
     date: input.date,
     synced: false,
     creeHorsLigne: !navigator.onLine,
@@ -110,6 +113,18 @@ export async function addBudget(input: NewBudgetInput): Promise<LocalBudget> {
     const body = await res.json().catch(() => null);
     throw new Error(typeof body?.error === "string" ? body.error : "Impossible de créer le budget");
   }
+  const { budget } = (await res.json()) as { budget: LocalBudget };
+  await db.budgets.put(budget);
+  return budget;
+}
+
+export async function updateBudget(input: { id: string; montantLimite?: number; seuilAlerte?: number; reporter?: boolean }): Promise<LocalBudget> {
+  const res = await fetch("/api/budgets", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error("Impossible de modifier le budget");
   const { budget } = (await res.json()) as { budget: LocalBudget };
   await db.budgets.put(budget);
   return budget;
@@ -229,6 +244,8 @@ export async function flushQueue(): Promise<void> {
           compteDestinationId: t.compteDestinationId,
           categorieId: t.categorieId,
           libelle: t.libelle,
+          tags: t.tags,
+          justificatif: t.justificatif,
           date: t.date,
           creeHorsLigne: t.creeHorsLigne,
         })),

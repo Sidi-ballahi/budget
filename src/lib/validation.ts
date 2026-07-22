@@ -8,6 +8,8 @@ export const newTransactionSchema = z.object({
   compteDestinationId: z.string().min(1).nullable().optional(),
   categorieId: z.string().min(1).nullable().optional(),
   libelle: z.string().nullable().optional(),
+  tags: z.array(z.string().min(1).max(30)).max(10).optional(),
+  justificatif: z.string().max(2_000_000).nullable().optional(),
   date: z.string().min(1),
   creeHorsLigne: z.boolean().optional(),
 });
@@ -28,6 +30,14 @@ export const newBudgetSchema = z.object({
   categorieId: z.string().min(1),
   montantLimite: z.number().positive(),
   seuilAlerte: z.number().int().min(1).max(100).default(80),
+  reporter: z.boolean().default(false),
+});
+
+export const updateBudgetSchema = z.object({
+  id: z.string().min(1),
+  montantLimite: z.number().positive().optional(),
+  seuilAlerte: z.number().int().min(1).max(100).optional(),
+  reporter: z.boolean().optional(),
 });
 
 export type NewBudgetParsed = z.infer<typeof newBudgetSchema>;

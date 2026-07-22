@@ -10,10 +10,13 @@ const TYPE_DEFS: { key: AccountType; label: string; Icon: typeof Landmark }[] = 
   { key: "cash", label: "Espèces", Icon: Wallet },
 ];
 
+const DEVISES = ["MRU", "EUR", "USD", "MAD", "XOF"];
+
 export function AddAccountSheet({ onClose, onConfirm }: { onClose: () => void; onConfirm: (input: NewAccountInput) => Promise<void> | void }) {
   const [nom, setNom] = useState("");
   const [type, setType] = useState<AccountType>("banque");
   const [soldeInitial, setSoldeInitial] = useState("");
+  const [devise, setDevise] = useState("MRU");
   const [couleur, setCouleur] = useState(COLOR_SWATCHES[0]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +32,7 @@ export function AddAccountSheet({ onClose, onConfirm }: { onClose: () => void; o
         nom: nom.trim(),
         type,
         soldeInitial: soldeInitial ? parseFloat(soldeInitial) : 0,
+        devise,
         couleur,
       });
     } catch {
@@ -110,7 +114,7 @@ export function AddAccountSheet({ onClose, onConfirm }: { onClose: () => void; o
           ))}
         </div>
 
-        <div style={{ fontSize: 12.5, fontWeight: 700, color: colors.textMuted, marginBottom: 8 }}>SOLDE INITIAL (MRU)</div>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: colors.textMuted, marginBottom: 8 }}>SOLDE INITIAL ({devise})</div>
         <input
           value={soldeInitial}
           onChange={(e) => setSoldeInitial(e.target.value.replace(/[^0-9.]/g, ""))}
@@ -128,6 +132,27 @@ export function AddAccountSheet({ onClose, onConfirm }: { onClose: () => void; o
             marginBottom: 18,
           }}
         />
+
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: colors.textMuted, marginBottom: 8 }}>DEVISE</div>
+        <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
+          {DEVISES.map((d) => (
+            <div
+              key={d}
+              onClick={() => setDevise(d)}
+              style={{
+                padding: "8px 14px",
+                borderRadius: 100,
+                fontSize: 12.5,
+                fontWeight: 600,
+                cursor: "pointer",
+                background: devise === d ? colors.accentGreen : colors.white5,
+                color: devise === d ? colors.neutralIcon : colors.textSecondary,
+              }}
+            >
+              {d}
+            </div>
+          ))}
+        </div>
 
         <div style={{ fontSize: 12.5, fontWeight: 700, color: colors.textMuted, marginBottom: 8 }}>COULEUR</div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 22 }}>
