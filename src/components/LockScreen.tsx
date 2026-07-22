@@ -24,6 +24,7 @@ export function LockScreen({
   const [canBiometric, setCanBiometric] = useState(false);
   const [biometricBusy, setBiometricBusy] = useState(false);
   const [biometricError, setBiometricError] = useState<string | null>(null);
+  const autoTriedRef = useRef(false);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -48,6 +49,16 @@ export function LockScreen({
     if (result.ok) onUnlockBiometric();
     else setBiometricError(result.error);
   }
+
+  // Auto-prompt once per lock screen appearance, like iOS apps do — the user
+  // can still tap the button below to retry if they dismiss the system sheet.
+  useEffect(() => {
+    if (canBiometric && !autoTriedRef.current) {
+      autoTriedRef.current = true;
+      void tryBiometric();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canBiometric]);
 
   return (
     <div
